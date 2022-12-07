@@ -1,0 +1,231 @@
+---
+title: "Experiment Output Data Structure"
+author: "Jack Brookes, Dominik Bach"
+date: "11/01/2021 - 18/08/2022"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Experiment Output Data Structure}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = "../", dev.args = list(type = "cairo"), fig.dpi = 600)
+library(vrthreat)
+```
+
+
+_This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>._
+
+## Overview
+
+There are many different pieces of data that are collected by the VR Threat experiments. The data files are sorted into directories, by experiment name, participant ID, then by session number. See example below for directory structure. The experiment names in this example are `technical_test` (with participants `TT1` & `TT2`) and `experiment_1` (with participants `EXP1_1` & `EXP1_2`). The `S001` (session 1) directory exists in case we perform experiments that require multiple sessions. 
+
+```
+technical_test
++---TT1
+|   +---S001
+|   |   +---camera
+|   |           {camera}_T{N}_{scenario}.mkv
+|   |   +---othersessiondata
+|   |           trigger_map.json
+|   |   +---othertrialdata
+|   |           fruittask0_T{N}.csv
+|   |           mic_T{N}.wav
+|   |           scenario_T{N}.csv
+|   |           sequence0_T{N}.csv
+|   |           subjective_response_T{N}.csv
+|   |   +---participantdetails
+|   |           participant_details.csv
+|   |   +---screen
+|   |           screen_T{N}_{scenario}.mkv
+|   |   +---sessionlog
+|   |           log.csv
+|   |   +---settings
+|   |           recording_settings.json
+|   |           settings.json
+|   |       
++---TT2
+|   +---S001
+|   |   [data files]
+
+experiment_1
++---EXP1_1
+|   +---S001
+|   |   [data files]
++---EXP1_2
+|   +---S001
+|   |   [data files]
+
+```
+
+For data analysis, your data folder should contain the experiment folders, even if you are analysing one experiment.
+
+## Trial Results
+
+The main data output file is the `trial_results.csv` file, which exists per participant per session. This is a CSV file with 1 row per trial (1 trial = 1 run of an episode). This contains relevant independent variables (e.g. the name of the episode) as well as dependent variables (e.g. start and end times). Some of the columns in this file are redundant, but are present to make analysis easier. There are many columns in these files:
+
+|Column|Description|
+|---|---|
+|`experiment`|Name of the experiment. Makes it easy to compare data between multiple experiments.|
+|`ppid`|Unique participant ID.|
+|`session_num`|Session number (1 = first session).|
+|`trial_num`|Trial number (1 = first trial).|
+|`block_num`|Block number (1 = first block). Currently all trials are stored in one block.|
+|`trial_num_in_block`|Trial number relative to the start of the block.|
+|`start_time`|Time stamp of when the trial began. This uses the Unity clock: Time is in seconds, relative to when the application was launched.|
+|`end_time`|Time stamp of when the trial ended. This uses the Unity clock: Time is in seconds, relative to when the application was launched.|
+|`episode`|Name of the episode, which is a concatenation of the environment name plus and the scenario name.|
+|`timeout`|The assigned timeout duration. This is a value in seconds at which the episode would end and the participant would "survive".|
+|`head_movement_location_0`|Location of the head movement data. Can be combined with the `directory` column to easily find the referenced file.|
+|`lefthand_movement_location_0`|Location of the left hand movement data. Can be combined with the `directory` column to easily find the referenced file.|
+|`righthand_movement_location_0`|Location of the head movement data. Can be combined with the `directory` column to easily find the referenced file.|
+|`threat_movement_location_0`|Location of the main threat movement data. Can be combined with the `directory` column to easily find the referenced file.|
+|`screenrec_location_0`|Location of the screen recording. Can be combined with the `directory` column to easily find the referenced file.|
+|`scenario_location_0`|Location of the scenario structure output. Can be combined with the `directory` column to easily find the referenced file.|
+|`CAM0001_camrec_location_0`|Location of the camera recording for (e.g.) `CAM0001`.|
+|`mic_location_0`|Location of the microphone data. Can be combined with the `directory` column to easily find the referenced file.|
+|`end_state`|Outcome of the trial. Potential values are `Safe`, `ConfrontedThreat`, & `Survived`.|
+|`fruittaskN_location_0`|Location of the fruit task data. There can be multiple fruit tasks in one scene, so column name would be `fruittask0_location_0`, `fruittask1_location_0`, etc. Can be combined with the `directory` column to easily find the referenced file.|
+|`seq0_location_0`|Location of the sequence data. There can be multiple sequences in one scene, so column name would be `seq0_location_0`, `seq1_location_0`, etc. Can be combined with the `directory` column to easily find the referenced file.|
+
+## Per-trial files
+
+Other data are collected across a trial and saved on a per trial basis, for example video recordings and movement data. These are all stored in subfolders each session folder, and include the trial number in the file name (e.g. `T001`). Each file has a different format:
+
+### Movement files
+
+E.g. Head movement, hand movements, etc. These are CSV files with 1 row per timestep. Time step is based on the frame rate of the application, and is 90Hz at peak performance. Each contain 7 columns:
+
+|Column|Description|
+|---|---|
+|`time`|Time stamp of when the row was recorded. This uses the Unity clock: Time is in seconds, relative to when the application was launched.|
+|`pos_x`|World x position of the object in meters. You can imagine the positive x-axis as going rightwards.|  
+|`pos_y`|World y position of the object in meters. You can imagine the positive y-axis as going upwards.|  
+|`pos_z`|World z position of the object in meters. You can imagine the positive z-axis as going forwards.|  
+|`rot_x`|World orientation (about the x-axis) of the object in degrees. This may wrap around (e.g. may go 358.0, 359.0, 0.0). |  
+|`rot_y`|World orientation (about the y-axis) of the object in degrees. This may wrap around (e.g. may go 358.0, 359.0, 0.0). |  
+|`rot_z`|World orientation (about the z-axis) of the object in degrees. This may wrap around (e.g. may go 358.0, 359.0, 0.0). |
+
+For the threat movement, it is anchored on the "point of interest" (usually the animal's head).
+
+Position uses left-handed coordinate system (x: right; y: upwards; z: forward). 
+
+Rotations are internally represented as quaternions in Unity, and outputted as (improper) Euler angles. These rotations suffer from Gimbal lock. See: https://docs.unity3d.com/Manual/QuaternionAndEulerRotationsInUnity.html.
+
+Rotation angles describe extrinsic rotations around the Z - X - Y (in this order) coordinate axes in left-hand convention (i.e. clockwise when axis is pointing towards observer and angle is positive). See: https://docs.unity3d.com/ScriptReference/Transform-eulerAngles.html (can also be verified from Unity editor and by comparing Unity output to videos)
+
+Eyetracker files include the current gaze orientation with gaze origin and gaze direction as a unit vector pointing outwards. This vector is in left-handed world coordinates (i.e. Unity coordinates), which is easy to check. Internally, Tobii eytracker software uses a right-handed coordinate system:  (+x: left ; +y: up; +z: forward), but the output is converted to Unity's coordinate system and integrated with the head position. For further information on Tobii's internal representation see https://vr.tobii.com/sdk/learn/technical-information/coordinate-systems
+
+
+### Scenario file
+
+E.g. `scenario_T004.json`.
+
+These data are created per trial, and represent all of the Unity objects in the scenario when the episode began. Each object has a name, position and rotation. Some objects have children, representing the hierarchy Unity GameObjects. These are encoded as a .json file, easily readable in text editors and all programming languages. You can use this (for example) to see exactly where the safe house was placed. 
+
+You can read about the Unity Hierarchy here: https://docs.unity3d.com/Manual/Hierarchy.html
+
+Example contents:
+  
+```json
+{
+    "name": "118 Falling Rock - come into view - medium range - lethal rolling rocks",
+    "position": {
+        "x": -13.819999694824219,
+        "y": 0,
+        "z": -8.8000001907348633
+    },
+    "euler_angles": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+    },
+    "children": [
+        {
+            "name": "StartPoint",
+            "position": {
+                "x": -14.819999694824219,
+                "y": 0,
+                "z": -9.40000057220459
+            },
+            "euler_angles": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "children": [
+                
+            ]
+        },
+        {
+            "name": "SafeHouse",
+            "position": {
+                "x": -13.719999313354492,
+                "y": 0,
+                "z": -6.8000001907348633
+            },
+            "euler_angles": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "children": [
+                
+            ]
+        }
+      ]
+}
+```
+
+### Fruit task file
+
+E.g. `fruittask0_T003.csv`.
+
+These are created for each fruit task present in each trial. They are CSV files that encode the participant's interaction with the fruit task. The file contains 6 columns:
+
+|Column|Description|
+|---|---|
+|`time`|Time stamp of when the row was recorded. This uses the Unity clock: Time is in seconds, relative to when the application was launched.|
+|`fruit_num`|ID of the fruit, zero-indexed.|
+|`event`|The event that happened, either `appear` or `collect`.|
+|`pos_x`|World x position of the piece of fruit in meters.|  
+|`pos_y`|World x position of the piece of fruit in meters.| 
+|`pos_z`|World x position of the piece of fruit in meters.| 
+
+### Sequence file
+
+E.g. `seq0_T010.json`.
+
+The toolkit allows for defining a sequence of events that occur throughout a scenario, for example making a threat move, or playing back a particular animation. The sequence file contains the settings for each sequence event, as well as results for the playback time of each event. It can be used to find out exactly when a particular animation was played.
+
+Example contents:
+
+```json
+{
+    "GameObject": "118 Falling Rock - come into view - medium range - lethal rolling rocks",
+    "id": 0,
+    "results": [
+        {
+            "event_type": "Wait",
+            "start_time": 2805.8984375,
+            "actual_duration": 17.021484375,
+            "target_duration": 17
+        },
+        {
+            "event_type": "Event Call",
+            "call_time": 2822.919921875
+        },
+        {
+            "event_type": "Wait",
+            "start_time": 2822.942138671875,
+            "actual_duration": 2.022216796875,
+            "target_duration": 2
+        }
+    ]
+}
+```
+
+### Log file
+
+[UXF's session logger](https://github.com/immersivecognition/unity-experiment-framework/wiki/Logging-system) automatically stores the console output of the task. The log file is stored in `/S001/sessionlog/log.csv`. In addition, extra things of note have been added to output in the log, such as when a weapon is picked up. These start with `@`, e.g. `@WEAPONATTACHEVENT stick : left_hand`.
