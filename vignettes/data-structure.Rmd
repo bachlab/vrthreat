@@ -1,7 +1,7 @@
 ---
 title: "Experiment Output Data Structure"
 author: "Jack Brookes, Dominik Bach"
-date: "11/01/2021 - 18/08/2022"
+date: "11/01/2021 - 07/12/2022"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Experiment Output Data Structure}
@@ -115,7 +115,7 @@ Rotations are internally represented as quaternions in Unity, and outputted as (
 
 Rotation angles describe extrinsic rotations around the Z - X - Y (in this order) coordinate axes in left-hand convention (i.e. clockwise when axis is pointing towards observer and angle is positive). See: https://docs.unity3d.com/ScriptReference/Transform-eulerAngles.html (can also be verified from Unity editor and by comparing Unity output to videos)
 
-Eyetracker files include the current gaze orientation with gaze origin and gaze direction as a unit vector pointing outwards. This vector is in left-handed world coordinates (i.e. Unity coordinates), which is easy to check. Internally, Tobii eytracker software uses a right-handed coordinate system:  (+x: left ; +y: up; +z: forward), but the output is converted to Unity's coordinate system and integrated with the head position. For further information on Tobii's internal representation see https://vr.tobii.com/sdk/learn/technical-information/coordinate-systems
+Eyetracker files include the current gaze orientation with gaze origin and gaze direction as a unit vector pointing outwards. This vector is in left-handed world coordinates (i.e. Unity coordinates), which is easy to check. Internally, Tobii eyetracker software uses a right-handed coordinate system:  (+x: left ; +y: up; +z: forward), but the output is converted to Unity's coordinate system and integrated with the head position. For further information on Tobii's internal representation see https://vr.tobii.com/sdk/learn/technical-information/coordinate-systems
 
 
 ### Scenario file

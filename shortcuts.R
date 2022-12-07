@@ -8,3 +8,9 @@ pkgdown::build_site()
 
 devtools::check()
 devtools::build()
+
+devtools::spell_check()
+devtools::check_rhub()
+devtools::check_win_devel()
+
+devtools::release()

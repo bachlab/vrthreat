@@ -73,8 +73,8 @@ play_audio_from_threat <- function(df,
 #'
 #' @param soundfile A wave file name
 #' @param start_time A start time (default 0)
-#' @param volume_threshold A (vector of) volume treshold(s)
-#' @param duration_threshold A (vector of) duration treshold(s) of same size
+#' @param volume_threshold A (vector of) volume threshold(s)
+#' @param duration_threshold A (vector of) duration threshold(s) of same size
 #'
 #' @return a logical vector of same length as the threshold vectors
 #' @export

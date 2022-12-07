@@ -3,7 +3,7 @@
 #' @param target_ang Angle
 #' @param ref_ang Reference angle
 #'
-#' @return Difference in angles in degress
+#' @return Difference in angles in degrees
 #' @export
 #'
 #' @examples
