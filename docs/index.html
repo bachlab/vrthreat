@@ -78,14 +78,29 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
+
 <div class="section level1">
 <div class="page-header"><h1 id="vrthreat-analysis-r-package">VRThreat: Analysis R package<a class="anchor" aria-label="anchor" href="#vrthreat-analysis-r-package"></a>
 </h1></div>
-<p>R package with generic analysis tools for VRThreat data generated with the VRthreat Unity package. This can be used to analyse data generated with publicly available releases of VRthreat games, collected on <a href="https://osf.io/2b3k7/" class="external-link">OSF</a>. Brought to you by <a href="http://bachlab.org" class="external-link">Bachlab</a></p>
-<p>Documentation: <a href="https://github.com/bachlab/vrthreat/docs/reference/index.html" class="external-link uri">https://github.com/bachlab/vrthreat/docs/reference/index.html</a></p>
-<p>You can install the package directly from CRAN:</p>
+<p>R package with generic analysis tools for VRThreat data generated with the VRthreat Unity package. This can be used to analyse data generated with publicly available releases of VRthreat games, collected on <a href="https://osf.io/2b3k7/" class="external-link">OSF</a>. Brought to you by <a href="http://bachlab.org" class="external-link">Bachlab</a> at <a href="https://www.uni-bonn.de/en" class="external-link">Universität Bonn</a> and <a href="https://www.ucl.ac.uk" class="external-link">University College London</a></p>
+<p>Documentation: <a href="https://bachlab.github.io/vrthreat/index.html" class="external-link uri">https://bachlab.github.io/vrthreat/index.html</a></p>
+</div>
+<div class="section level1">
+<h1 id="how-to-install-the-package-from-github">How to install the package from GitHub:<a class="anchor" aria-label="anchor" href="#how-to-install-the-package-from-github"></a>
+</h1>
+<div class="section level3">
+<h3 id="step-1-install-the-devtools-package">Step 1: Install the devtools package:<a class="anchor" aria-label="anchor" href="#step-1-install-the-devtools-package"></a>
+</h3>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"vrthreat"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="step-2-install-the-vrthreat-package">Step 2: Install the vrthreat package:<a class="anchor" aria-label="anchor" href="#step-2-install-the-vrthreat-package"></a>
+</h3>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"bachlab/vrthreat"</span><span class="op">)</span></span></code></pre></div>
+<p>NOTE: the vrthreat package is not currently available on CRAN as it heavily uses tidyverse-style non-standard evaluation which is not accepted on CRAN. This may change in the future.</p>
+</div>
 <div class="section level2">
 <h2 id="scripts">Scripts<a class="anchor" aria-label="anchor" href="#scripts"></a>
 </h2>
@@ -120,6 +135,7 @@
 </ul>
 </div>
 </div>
+
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

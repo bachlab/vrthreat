@@ -4,6 +4,9 @@
     <loc>/404.html</loc>
   </url>
   <url>
+    <loc>/LICENSE.html</loc>
+  </url>
+  <url>
     <loc>/articles/data-structure.html</loc>
   </url>
   <url>
@@ -17,9 +20,6 @@
   </url>
   <url>
     <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/LICENSE.html</loc>
   </url>
   <url>
     <loc>/reference/add_angular_diff.html</loc>
@@ -208,10 +208,10 @@
     <loc>/reference/fit_mdl_robust.html</loc>
   </url>
   <url>
-    <loc>/reference/fixation_to_target.html</loc>
+    <loc>/reference/fix_old_names.html</loc>
   </url>
   <url>
-    <loc>/reference/fix_old_names.html</loc>
+    <loc>/reference/fixation_to_target.html</loc>
   </url>
   <url>
     <loc>/reference/fruit_gameobject_names.html</loc>
@@ -376,6 +376,12 @@
     <loc>/reference/sub_sum_quest.html</loc>
   </url>
   <url>
+    <loc>/reference/sum_mssq.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sum_quest.html</loc>
+  </url>
+  <url>
     <loc>/reference/summarise_fruit_task.html</loc>
   </url>
   <url>
@@ -389,12 +395,6 @@
   </url>
   <url>
     <loc>/reference/summarise_velocity.html</loc>
-  </url>
-  <url>
-    <loc>/reference/sum_mssq.html</loc>
-  </url>
-  <url>
-    <loc>/reference/sum_quest.html</loc>
   </url>
   <url>
     <loc>/reference/theme_vrthreat.html</loc>

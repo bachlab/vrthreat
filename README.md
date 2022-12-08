@@ -1,15 +1,25 @@
 # VRThreat: Analysis R package
 
-R package with generic analysis tools for VRThreat data generated with the VRthreat Unity package. This can be used to analyse data generated with publicly available releases of VRthreat games, collected on [OSF](https://osf.io/2b3k7/). Brought to you by [Bachlab](http://bachlab.org)
+R package with generic analysis tools for VRThreat data generated with the VRthreat Unity package. This can be used to analyse data generated with publicly available releases of VRthreat games, collected on [OSF](https://osf.io/2b3k7/). Brought to you by [Bachlab](http://bachlab.org) at [Universität Bonn](https://www.uni-bonn.de/en) and [University College London](https://www.ucl.ac.uk)
 
-Documentation: https://github.com/bachlab/vrthreat/docs/reference/index.html
+Documentation: https://bachlab.github.io/vrthreat/index.html
 
-You can install the package directly from CRAN: 
+# How to install the package from GitHub:
+
+### Step 1: Install the devtools package:
 
 ```r
-install.packages("vrthreat")
+install.packages("devtools")
 ```
 
+### Step 2: Install the vrthreat package:
+
+```r
+devtools::install_github("bachlab/vrthreat")
+```
+
+NOTE: the vrthreat package is not currently available on CRAN as it heavily uses tidyverse-style non-standard evaluation
+which is not accepted on CRAN. This may change in the future.
 
 ## Scripts
 
