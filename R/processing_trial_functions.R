@@ -328,14 +328,17 @@ average_timeseries_cols <-
 #' @examples
 summarise_movement_cols <-
   function(df,
-           .cols = tidyselect::ends_with("_movement_data_0" & !(tidyselect::starts_with("valid"))),
+           .cols = tidyselect::ends_with("_movement_data_0") &
+             !(tidyselect::starts_with("valid")),
            by = "time") {
     df %>%
       dplyr::rowwise() %>%
-      dplyr::mutate(dplyr::across(
-        {{ .cols }},
-        ~ summarise_movement(.x, by)
-        ))
+      dplyr::mutate(dplyr::across({
+        {
+          .cols
+        }
+      },
+      ~ summarise_movement(.x, by)))
   }
 
 
