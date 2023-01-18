@@ -200,7 +200,7 @@ read_json_files <-
         }
       },
       ~ list(read_fn(., drop_tld)),
-      .names = "{str_replace(.col, '_location', '_data')}")) %>%
+      .names = "{stringr::str_replace(.col, '_location', '_data')}")) %>%
       dplyr::ungroup()
   }
 
