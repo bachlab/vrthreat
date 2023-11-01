@@ -4,29 +4,19 @@
 \alias{read_json_files}
 \title{Read JSON Files}
 \usage{
-read_json_files(
-  data,
-  data_dir,
-  .cols = ends_with("_json_location_0"),
-  drop_tld = TRUE,
-  ...
-)
+read_json_files(data, .cols = ends_with("_json_location_0"), ...)
 }
 \arguments{
 \item{data}{A dataframe of trial results}
 
-\item{data_dir}{Parent directory where data are stored}
-
 \item{.cols}{A tidyselect specification of columns (e.g. `c(col1, col2)`).}
-
-\item{drop_tld}{Drop top-level directory from path}
 
 \item{...}{Additional arguments passed to `read_json`.
 Default are columns that end with `_json_location_0`}
 }
 \description{
 Read json files associated with trials from paths stored in supplied
-columns (with top-level directory removed).
-#' Column `directory` must be present in dataframe. Function uses
+columns. Expects absolute paths, use `update_file_pointers` to
+update them if necessary. Function uses
 `jsonlite::read_json` to read files.
 }

@@ -60,20 +60,34 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">read_log_messages</span><span class="op">(</span><span class="va">data_dir</span>, <span class="va">messages</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">read_log_messages</span><span class="op">(</span><span class="va">data</span>, <span class="va">messages</span>, <span class="va">.colnames</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <dl><dt>data_dir</dt>
-<dd><p>Parent directory where data are stored</p></dd>
+    <dl><dt>data</dt>
+<dd><p>Data frame of trial results, containing column `res_path`</p></dd>
 
 
 <dt>messages</dt>
 <dd><p>Vector of string messages to detect</p></dd>
 
+
+<dt>.colnames</dt>
+<dd><p>Vector of column names to insert into `data_dir`</p></dd>
+
 </dl></div>
 
+    <div id="ref-examples">
+    <h2>Examples</h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># find "killed by magical force" messages in study 2</span></span></span>
+<span class="r-in"><span><span class="va">trials_with_log_messages</span> <span class="op">&lt;-</span></span></span>
+<span class="r-in"><span><span class="va">trials_raw</span> <span class="op">%&gt;%</span></span></span>
+<span class="r-in"><span>   <span class="fu">read_log_messages</span><span class="op">(</span><span class="st">"ConfrontedThreat 0 You were killed by a magical force"</span>,</span></span>
+<span class="r-in"><span>                     <span class="st">"killed_by_magical_force"</span> <span class="op">=</span> <span class="st">"...1"</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in trials_raw %&gt;% read_log_messages("ConfrontedThreat 0 You were killed by a magical force",     killed_by_magical_force = "...1"):</span> could not find function "%&gt;%"</span>
+</code></pre></div>
+    </div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top"><h2 data-toc-skip>Contents</h2>
@@ -86,7 +100,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

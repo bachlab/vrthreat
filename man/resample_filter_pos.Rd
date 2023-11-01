@@ -19,6 +19,6 @@ Resampled data frame with filtered columns add as `new_pos_...` or `new_rot`
 \description{
 This is a convenience function to resample and filter an entire data frame.
 To be used with `extract_...` functions that extract movement features between
-time points. To avoide edge effects, the filtering is done on the entire data
+time points. To avoid edge effects, the filtering is done on the entire data
 frame, rather than just on an interval of interest.
 }

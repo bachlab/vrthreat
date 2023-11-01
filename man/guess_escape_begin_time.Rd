@@ -11,6 +11,7 @@ guess_escape_begin_time(
   span = 5,
   min_speed = 0.1,
   min_time = min(df$time),
+  max_time = max(df$time),
   indx = 1
 )
 }
@@ -26,6 +27,8 @@ guess_escape_begin_time(
 \item{min_speed}{minimum speed to determine start of escape}
 
 \item{min_time}{minimum time to start searching for escape}
+
+\item{max_time}{maximum time to search for escape}
 
 \item{indx}{currently disabled (only needed for debugging)}
 }

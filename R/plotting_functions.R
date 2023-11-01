@@ -133,4 +133,74 @@ scale_pastel <- function(...) {
 }
 
 
+#' Plot 3D movements for one trial
+#'
+#' Any movement data frame (tracker, threat) is plotted in an interactive 3D plot.
+#'
+#' @param df a movement data frame
+#' @param xlim The left-right limit of the plot (default: ```c(-2, 2)```)
+#' @param ylim The top-bottom limit of the plot (default: ```c(-0.2, 2.5)```)
+#' @param zlim The forward-backward limit of the plot (default: ```c(-3, 3)```)
+#'
+#' @return
+#' @export
+#'
+#' @examples
+plot_3D_movement <- function(df,
+                             xlim = c(-2, 2),
+                             ylim = c(-.2, 2.5),
+                             zlim = c(-3, 3)
+                             ) {
+  ## Use blue color spectrum to track people's movement, you can tell that...
+  ## the earlier the movement the lighter the blue color, and the later the movement the darker the blue color
+  ## Note that here I add 400 more points and then discarded them, ...
+  ## because the blue color for the earlier movements is really light and hard to see.
+  num <- nrow(df) + 400
+  k <- colorRampPalette(RColorBrewer::brewer.pal(7, "Blues"))(num)
+  k1 <- k[401:length(k)]
+
+  ## Open a 3D environment and plot the track
+  rgl::open3d()
+
+  ## Plot points that follow the timeline on this 3D environment
+  rgl::plot3d(
+    x = df$pos_x,
+    y = df$pos_z,
+    z = df$pos_y,
+    xlab = "left-right (m)",
+    ylab = "forward-backward (m)",
+    zlab = "Height (m)",
+    type = "p",
+    col = k1,
+    aspect = "iso",
+    ticktype = "simple"
+  )
+
+  ## ensure correct axis limits by drawing transparent axis lines
+  rgl::rgl.lines(xlim, 0, 0, color = "grey")
+  rgl::rgl.lines(0, 0,  ylim, color = "grey")
+  rgl::rgl.lines(0, zlim, 0, color = "grey")
+
+  ## add the starting and end points
+  rgl::text3d(
+    x = df$pos_x[1],
+    y = df$pos_z[1],
+    z = df$pos_y[1],
+    text = "Start",
+    pos = 1,
+    color = "blue"
+  )
+
+  rgl::text3d(
+    x = df[nrow(df),]$pos_x,
+    y = df[nrow(df),]$pos_z,
+    z = df[nrow(df),]$pos_y,
+    text = "End",
+    pos = 1,
+    color = "blue"
+  )
+}
+
+
+
 

@@ -6,7 +6,7 @@
 \usage{
 summarise_movement_cols(
   df,
-  .cols = tidyselect::ends_with("_movement_data_0" & !(tidyselect::starts_with("valid"))),
+  .cols = tidyselect::ends_with("_movement_data_0") & !(tidyselect::starts_with("valid")),
   by = "time"
 )
 }

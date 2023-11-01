@@ -15,5 +15,6 @@ read_participant_details(df, data_dir)
 Data frame with new columns
 }
 \description{
-Read participant details from files
+Will assume directory names assume to original participant ids, don''t use if
+these have been changed.
 }

@@ -10,7 +10,7 @@ split_path(path)
 \item{path}{A path name}
 }
 \value{
-a vector of path components
+a vector of path components (starting with the last component)
 }
 \description{
 Split a path name into into its components

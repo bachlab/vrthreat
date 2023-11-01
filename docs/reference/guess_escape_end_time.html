@@ -3,8 +3,10 @@
 Survived, killed: end of recording minus buffer and fade time
 Escaped to safe house: crossing of the safe house threshold
 Assumes safe house size 1 m x 1 m x 2 m (height)
+Does not check whether people came through the door (only distance to safe
+house centre is considered)
 If escaped but no safe house position logged, or entry to safe house unclear
-(edge cases): end of recording minus 2 s (as a rough guess)"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
+(edge cases): end of recording minus 0.5 s (as a rough guess)"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]--></head><body data-spy="scroll" data-target="#toc">
@@ -65,18 +67,18 @@ If escaped but no safe house position logged, or entry to safe house unclear
 Survived, killed: end of recording minus buffer and fade time
 Escaped to safe house: crossing of the safe house threshold
 Assumes safe house size 1 m x 1 m x 2 m (height)
+Does not check whether people came through the door (only distance to safe
+house centre is considered)
 If escaped but no safe house position logged, or entry to safe house unclear
-(edge cases): end of recording minus 2 s (as a rough guess)</p>
+(edge cases): end of recording minus 0.5 s (as a rough guess)</p>
     </div>
 
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">guess_escape_end_time</span><span class="op">(</span></span>
 <span>  <span class="va">safe_pos</span>,</span>
-<span>  <span class="va">end_time</span>,</span>
+<span>  max_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">ref_movement</span><span class="op">$</span><span class="va">time</span><span class="op">)</span>,</span>
 <span>  <span class="va">end_state</span>,</span>
-<span>  <span class="va">ref_movement</span>,</span>
-<span>  buffer_time <span class="op">=</span> <span class="fl">1.5</span>,</span>
-<span>  fade_time <span class="op">=</span> <span class="fl">0.05</span></span>
+<span>  <span class="va">ref_movement</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -86,8 +88,12 @@ If escaped but no safe house position logged, or entry to safe house unclear
 <dd><p>Safe position (output from find_safe_position)</p></dd>
 
 
-<dt>end_time</dt>
-<dd><p>End time column entry</p></dd>
+<dt>max_time</dt>
+<dd><p>Maximum time to look for end of escape. Should usually be the
+time point at which the visual display for the participant ended
+(i.e., not the end of movement tracking or end time of the trial)
+This usually the end time, minus a buffer time (often 1.5 s)
+and the fade time (often 0.05 s)</p></dd>
 
 
 <dt>end_state</dt>
@@ -96,14 +102,6 @@ If escaped but no safe house position logged, or entry to safe house unclear
 
 <dt>ref_movement</dt>
 <dd><p>Reference movement (e.g. waist movement)</p></dd>
-
-
-<dt>buffer_time</dt>
-<dd><p>Study-specific buffer time after trial end (default: 1.5 s)</p></dd>
-
-
-<dt>fade_time</dt>
-<dd><p>Study-specific fade time (default: .05 s)</p></dd>
 
 </dl></div>
 
@@ -119,7 +117,7 @@ If escaped but no safe house position logged, or entry to safe house unclear
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

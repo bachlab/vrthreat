@@ -4,13 +4,22 @@
 \alias{read_log_messages}
 \title{Read log messages}
 \usage{
-read_log_messages(data_dir, messages)
+read_log_messages(data, messages, .colnames)
 }
 \arguments{
-\item{data_dir}{Parent directory where data are stored}
+\item{data}{Data frame of trial results, containing column `res_path`}
 
 \item{messages}{Vector of string messages to detect}
+
+\item{.colnames}{Vector of column names to insert into `data_dir`}
 }
 \description{
 Read log messages from log files to combine with trial results
+}
+\examples{
+# find "killed by magical force" messages in study 2
+trials_with_log_messages <-
+trials_raw \%>\%
+   read_log_messages("ConfrontedThreat 0 You were killed by a magical force",
+                     "killed_by_magical_force" = "...1")
 }

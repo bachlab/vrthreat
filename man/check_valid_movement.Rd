@@ -17,7 +17,8 @@ check_valid_movement(
 
 \item{ref_df}{A reference movement data frame (default: NULL)}
 
-\item{ref_pos}{A reference initial position (default: NULL)}
+\item{ref_pos}{A reference initial position (list containing `pos_x` and
+`pos_z` items) (default: NULL)}
 
 \item{max_dist}{A maximum distance in metre (default: 2)}
 

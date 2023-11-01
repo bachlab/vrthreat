@@ -7,7 +7,6 @@
 sound_classification_manual(
   df,
   audio_path,
-  drop_tld = TRUE,
   trials = 1:nrow(df),
   sound_classification_file = "sound_classification.csv",
   sound_detection_file = ""
@@ -15,10 +14,6 @@ sound_classification_manual(
 }
 \arguments{
 \item{df}{A trial results data frame}
-
-\item{audio_path}{The path to the data directory}
-
-\item{drop_tld}{Drop top-level directory in stored file location? (default TRUE)}
 
 \item{trials}{An integer selection of trials to play (corresponding to rows in output file), default: all rows}
 

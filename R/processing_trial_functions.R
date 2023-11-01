@@ -56,17 +56,25 @@ fix_old_names <- function(df){
 #' those under the alternative ppid. They are marked with a new session number
 #' to allow them to be distinguished. Any episodes (as defined by the string in
 #' the episode column) are replaced with those in the replacement session.
+#' Often, trials are repeated because of a failure. If `last_trial_exclude` is
+#' set to 1, then the last trial from the previous session of the matched ppid
+#' will be excluded. Afterwards, in case the exact same trial was repeated in
+#' a row, only the first occurrence will be retained.
 #'
 #' @param df A trial results data frame.
 #' @param replacements_df A data frame with columns
-#'   `"ppid_old"`,`"ppid_new"`,`"session_num_new"`.
+#'   `"ppid_old"`,`"ppid_new"`,`"session_num_new"`, `"last_trial_exclude"`
 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-apply_replacements <- function(df, replacements_df){
+apply_replacements <- function(df, replacements_df) {
+
+  new_replacements_df <- replacements_df %>%
+    dplyr::mutate(previous_session_num = session_num_new - 1)
+
   df %>%
     dplyr::rowwise() %>%
     dplyr::mutate(
@@ -83,15 +91,32 @@ apply_replacements <- function(df, replacements_df){
     ) %>%
     # remove last trial from first session if indicated in replacements_df
     dplyr::ungroup() %>%
-    dplyr::group_by(ppid) %>%
-    dplyr::filter(!(ppid %in% replacements_df$ppid_new &
-                  session_num == 1 &
-                  with(replacements_df, last_trial_exclude[match(ppid, ppid_new)] == 1) &
-                  trial_num == max(trial_num))) %>%
-    # only keep those in final session
+    dplyr::left_join(new_replacements_df,
+                     by = join_by(ppid  == ppid_new,
+                                  session_num == previous_session_num)) %>%
+    dplyr::mutate(last_trial_exclude = if_else(is.na(last_trial_exclude),
+                                               0, last_trial_exclude)) %>%
+    dplyr::group_by(ppid, session_num) %>%
+    dplyr::filter(!(last_trial_exclude == 1 &
+                      trial_num == max(trial_num))) %>%
+    dplyr::select(!tidyselect::any_of(colnames(new_replacements_df))) %>%
+    # when two epochs appear in a row across sessions then only keep the first one
+    dplyr::mutate(
+      first_trial = min(trial_num), # first trial per session
+      last_trial = max(trial_num),  # last trial per session
+      previous_trial = dplyr::lag(trial_num), # preceding trial
+      if_else(is.na(previous_trial), 0, previous_trial)
+    ) %>%
     dplyr::ungroup() %>%
     dplyr::group_by(ppid, episode) %>%
-    dplyr::filter(session_num == max(session_num))
+    dplyr::filter(!(
+      length(dplyr::cur_group_rows()) > 1 &
+          length(unique(session_num)) > 1 &
+          trial_num == first_trial &
+          previous_trial == last_trial
+    )) %>%
+  dplyr::select(!c(first_trial, last_trial, previous_trial))
+
 }
 
 #' Reorient movement columns to starting position.
@@ -328,20 +353,16 @@ average_timeseries_cols <-
 #' @examples
 summarise_movement_cols <-
   function(df,
-           .cols = tidyselect::ends_with("_movement_data_0") &
-             !(tidyselect::starts_with("valid")),
+           .cols = tidyselect::ends_with("_movement_data_0")
+           & !(tidyselect::starts_with("valid")),
            by = "time") {
     df %>%
       dplyr::rowwise() %>%
-      dplyr::mutate(dplyr::across({
-        {
-          .cols
-        }
-      },
-      ~ summarise_movement(.x, by)))
+      dplyr::mutate(dplyr::across(
+        {{ .cols }},
+        ~ summarise_movement(.x, by)
+        ))
   }
-
-
 
 #' Check movement data columns
 #'

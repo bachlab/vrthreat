@@ -12,7 +12,7 @@ angle_diff_deg(target_ang, ref_ang)
 \item{ref_ang}{Reference angle}
 }
 \value{
-Difference in angles in degress
+Difference in angles in degrees
 }
 \description{
 Calculate angle difference in degrees, respecting angles <0 or >360.

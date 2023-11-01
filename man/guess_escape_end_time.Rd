@@ -6,31 +6,31 @@
 \usage{
 guess_escape_end_time(
   safe_pos,
-  end_time,
+  max_time = max(ref_movement$time),
   end_state,
-  ref_movement,
-  buffer_time = 1.5,
-  fade_time = 0.05
+  ref_movement
 )
 }
 \arguments{
 \item{safe_pos}{Safe position (output from find_safe_position)}
 
-\item{end_time}{End time column entry}
+\item{max_time}{Maximum time to look for end of escape. Should usually be the
+time point at which the visual display for the participant ended
+(i.e., not the end of movement tracking or end time of the trial)
+This usually the end time, minus a buffer time (often 1.5 s)
+and the fade time (often 0.05 s)}
 
 \item{end_state}{End state column entry}
 
 \item{ref_movement}{Reference movement (e.g. waist movement)}
-
-\item{buffer_time}{Study-specific buffer time after trial end (default: 1.5 s)}
-
-\item{fade_time}{Study-specific fade time (default: .05 s)}
 }
 \description{
 Guess the time at which escape movement ends, depending on trial outcome:
 Survived, killed: end of recording minus buffer and fade time
 Escaped to safe house: crossing of the safe house threshold
 Assumes safe house size 1 m x 1 m x 2 m (height)
+Does not check whether people came through the door (only distance to safe
+house centre is considered)
 If escaped but no safe house position logged, or entry to safe house unclear
-(edge cases): end of recording minus 2 s (as a rough guess)
+(edge cases): end of recording minus 0.5 s (as a rough guess)
 }

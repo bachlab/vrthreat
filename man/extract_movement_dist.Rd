@@ -18,7 +18,7 @@ extract_movement_dist(
 columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).}
 
 \item{ref_position}{Reference position, stored as a list
-containing `"pos_x"`, `"pos_y"`, `"pos_z"` items.}
+containing `"pos_x"`, `"pos_z"` items.}
 
 \item{min_time}{Minimum time within the ref_movement (taken from `"time"`
 column) to search.}

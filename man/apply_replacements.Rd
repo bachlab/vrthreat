@@ -10,7 +10,7 @@ apply_replacements(df, replacements_df)
 \item{df}{A trial results data frame.}
 
 \item{replacements_df}{A data frame with columns
-`"ppid_old"`,`"ppid_new"`,`"session_num_new"`.}
+`"ppid_old"`,`"ppid_new"`,`"session_num_new"`, `"last_trial_exclude"`}
 }
 \description{
 Replaces the `ppid` and `session_num` of data in your trial results. This is
@@ -19,4 +19,8 @@ under a new PPID. This replaces the trials found in the trial results with
 those under the alternative ppid. They are marked with a new session number
 to allow them to be distinguished. Any episodes (as defined by the string in
 the episode column) are replaced with those in the replacement session.
+Often, trials are repeated because of a failure. If `last_trial_exclude` is
+set to 1, then the last trial from the previous session of the matched ppid
+will be excluded. Afterwards, in case the exact same trial was repeated in
+a row, only the first occurrence will be retained.
 }

@@ -4,7 +4,11 @@ used if, for example, you must repeat some specific trials with a participant
 under a new PPID. This replaces the trials found in the trial results with
 those under the alternative ppid. They are marked with a new session number
 to allow them to be distinguished. Any episodes (as defined by the string in
-the episode column) are replaced with those in the replacement session."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
+the episode column) are replaced with those in the replacement session.
+Often, trials are repeated because of a failure. If `last_trial_exclude` is
+set to 1, then the last trial from the previous session of the matched ppid
+will be excluded. Afterwards, in case the exact same trial was repeated in
+a row, only the first occurrence will be retained."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]--></head><body data-spy="scroll" data-target="#toc">
@@ -66,7 +70,11 @@ used if, for example, you must repeat some specific trials with a participant
 under a new PPID. This replaces the trials found in the trial results with
 those under the alternative ppid. They are marked with a new session number
 to allow them to be distinguished. Any episodes (as defined by the string in
-the episode column) are replaced with those in the replacement session.</p>
+the episode column) are replaced with those in the replacement session.
+Often, trials are repeated because of a failure. If `last_trial_exclude` is
+set to 1, then the last trial from the previous session of the matched ppid
+will be excluded. Afterwards, in case the exact same trial was repeated in
+a row, only the first occurrence will be retained.</p>
     </div>
 
     <div id="ref-usage">
@@ -81,7 +89,7 @@ the episode column) are replaced with those in the replacement session.</p>
 
 <dt>replacements_df</dt>
 <dd><p>A data frame with columns
-`"ppid_old"`,`"ppid_new"`,`"session_num_new"`.</p></dd>
+`"ppid_old"`,`"ppid_new"`,`"session_num_new"`, `"last_trial_exclude"`</p></dd>
 
 </dl></div>
 
@@ -97,7 +105,7 @@ the episode column) are replaced with those in the replacement session.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

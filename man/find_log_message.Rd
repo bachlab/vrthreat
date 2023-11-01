@@ -4,15 +4,17 @@
 \alias{find_log_message}
 \title{Find messages in a session log and assign to trials}
 \usage{
-find_log_message(df, messages)
+find_log_message(df, messages, .colnames)
 }
 \arguments{
 \item{df}{A session log data frame}
 
 \item{messages}{A vector of string}
+
+\item{.colnames}{A vector of column names, the same size as `messages`}
 }
 \value{
-A data frame with `trial_num` and `message` (boolean)
+A data frame with `trial_num` and `.colnames` (boolean)
 }
 \description{
 Find messages in a session log and assign to trials

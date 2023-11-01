@@ -9,7 +9,8 @@
 #'
 #' @examples
 get_first_fruit_collection <- function(df) {
-  if (is.null(df) || nrow(df) == 0)
+  if (!is.data.frame(df) ||
+      nrow(df) == 0)
     return(NA_real_)
 
   df %>%
@@ -35,7 +36,7 @@ get_first_fruit_collection <- function(df) {
 #'
 #' @examples
 guess_pos_at_time <- function(df, ref_time) {
-  if (is.null(df) ||
+  if (!is.data.frame(df)   ||
       nrow(df) == 0 ||
       ref_time < min(df$time) ||
       ref_time > max(df$time))
@@ -62,6 +63,8 @@ guess_pos_at_time <- function(df, ref_time) {
 #'   columns.
 #' @param max_dist Maximum distance in meters before player is
 #'   classified as away from the position
+#' @min_time Minimum time to look for move (default: start of data frame)
+#' @max_time Maximum time to look for move (default: end of data frame)
 #'
 #' @return A time stamp (Unity time) representing the time when the participant
 #'   initially moved from the position.
@@ -71,13 +74,16 @@ guess_pos_at_time <- function(df, ref_time) {
 guess_move_from_pos <-
   function(pos,
            ref_movement,
-           max_dist = 0.2) {
+           max_dist = 0.2,
+           min_time = min(ref_movement$time),
+           max_time = max(ref_movement$time)) {
     if (nrow(ref_movement) == 0)
       return(NA_real_)
     if (is.null(pos))
       return(NA_real_)
 
     temp_tbl <- ref_movement %>%
+      filter(time > min_time & time < max_time) %>%
       dplyr::rowwise() %>%
       # this could be made faster with rowSums, but would need to catch the case that
       # df has only one row
@@ -126,6 +132,7 @@ guess_move_from_pos <-
 #' @param span span of the median filter
 #' @param min_speed minimum speed to determine start of escape
 #' @param min_time minimum time to start searching for escape
+#' @param max_time maximum time to search for escape
 #' @param indx currently disabled (only needed for debugging)
 #'
 #' @return
@@ -138,12 +145,13 @@ guess_escape_begin_time <- function(df,
                                     span = 5,
                                     min_speed = .1,
                                     min_time = min(df$time),
+                                    max_time = max(df$time),
                                     indx = 1) {
 
   # get first time player is away from fruit bush; return NA if this never happens
-  if (is.na(min_time)) return(NA_real_)
+  if (!is.data.frame(df) || is.na(min_time)) return(NA_real_)
   max_time <- guess_move_from_pos(ref_pos,
-                                  filter(df, time > min_time),
+                                  filter(df, time > min_time & time < max_time),
                                   max_dist = esc_dist)
   if (is.na(max_time)) return(NA_real_)
 
@@ -211,32 +219,34 @@ guess_escape_begin_time <- function(df,
 #' Survived, killed: end of recording minus buffer and fade time
 #' Escaped to safe house: crossing of the safe house threshold
 #' Assumes safe house size 1 m x 1 m x 2 m (height)
+#' Does not check whether people came through the door (only distance to safe
+#' house centre is considered)
 #' If escaped but no safe house position logged, or entry to safe house unclear
-#' (edge cases): end of recording minus 2 s (as a rough guess)
+#' (edge cases): end of recording minus 0.5 s (as a rough guess)
 #'
 #' @param safe_pos Safe position (output from find_safe_position)
-#' @param end_time End time column entry
+#' @param max_time Maximum time to look for end of escape. Should usually be the
+#'                 time point at which the visual display for the participant ended
+#'                 (i.e., not the end of movement tracking or end time of the trial)
+#'                 This usually the end time, minus a buffer time (often 1.5 s)
+#'                 and the fade time (often 0.05 s)
 #' @param end_state End state column entry
 #' @param ref_movement Reference movement (e.g. waist movement)
-#' @param buffer_time Study-specific buffer time after trial end (default: 1.5 s)
-#' @param fade_time Study-specific fade time (default: .05 s)
 guess_escape_end_time <-
   function(safe_pos,
-           end_time,
+           max_time = max(ref_movement$time),
            end_state,
-           ref_movement,
-           buffer_time = 1.5,
-           fade_time = 0.05) {
+           ref_movement) {
 
     if (!(end_state %in% c("Survived", "ConfrontedThreat", "Safe"))) return(NA_real_)
-    if (end_state %in% c("Survived", "ConfrontedThreat")) return(end_time - (fade_time + buffer_time))
-    if (is.null(safe_pos)) return(end_time - 2)
+    if (end_state %in% c("Survived", "ConfrontedThreat")) return(max_time)
+    if (is.null(safe_pos)) return(max_time - 0.5)
 
     ref_movement %>%
-      dplyr::filter(pos_z < (safe_pos$pos_z + .5)) %>%
-      dplyr::filter((pos_x > safe_pos$pos_x - .5) & (pos_x < safe_pos$pos_x + .5)) %>%
+      dplyr::filter(time < max_time) %>%
+      dplyr::filter(calculate_2d_dist(pos_x, pos_z, safe_pos$pos_x, safe_pos$pos_z) < .6) %>%
       dplyr::slice(1) %>%
-      {if (nrow(.) == 1) dplyr::pull(., time) else end_time - 2}
+      {if (nrow(.) == 1) dplyr::pull(., time) else max_time - 0.5}
   }
 
 #' Guess escape abortion position and time
@@ -263,9 +273,11 @@ guess_escape_abortion <-
            end_escape_time,
            end_state) {
 
-    if (!(end_state == "Survived") ||
+    if (!is.data.frame(df) ||
+        !(end_state == "Survived") ||
         is.na(begin_escape_time) ||
-        is.na(end_escape_time))
+        is.na(end_escape_time) ||
+        is.null(ref_position))
       return(list(tibble(distance = NA_real_, time = NA_real_)))
 
     ref_movement <-
@@ -336,8 +348,8 @@ prepare_gaze_data <- function(df,
   if ("gaze_direction_x" %in% colnames(df)) {
     df <- df %>%
       dplyr::select(!c("focus_object_raw", "focus_threat")) %>%
+      dplyr::select(where(~ (!all(is.na(.x))))) %>%
       resample_filter_pos(new_time, span = 3) %>%
-      # angular_diff expects columns named `rot_`
       dplyr::select(!tidyselect::starts_with("gaze_")) %>%
       dplyr::rename(
         gaze_direction_x = new_gaze_direction_x,
@@ -350,7 +362,6 @@ prepare_gaze_data <- function(df,
     df <-
       df %>%
       resample_filter_pos(new_time, span = 3) %>%
-      # angular_diff expects columns named `rot_`
       dplyr::select(!tidyselect::starts_with("rot_")) %>%
       dplyr::rename(rot_x = new_rot_x,
                     rot_y = new_rot_y,
@@ -677,7 +688,8 @@ summarise_movement <- function(df, by){
 #'
 #' @param df A movement data frame
 #' @param ref_df A reference movement data frame (default: NULL)
-#' @param ref_pos A reference initial position (default: NULL)
+#' @param ref_pos A reference initial position (list containing `pos_x` and
+#'               `pos_z` items) (default: NULL)
 #' @param max_dist A maximum distance in metre (default: 2)
 #' @param max_speed A maximum speed in m/s (default: 10)
 #'

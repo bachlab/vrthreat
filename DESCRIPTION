@@ -47,12 +47,14 @@ Imports:
     utils,
     stats,
     methods,
-    graphics
+    graphics,
+    rgl,
+    RColorBrewer
 Suggests: 
     testthat (>= 3.0.0),
     knitr,
     rmarkdown
 Config/testthat/edition: 3
-RoxygenNote: 7.2.2
+RoxygenNote: 7.2.3
 VignetteBuilder: knitr
-Language:en-GB
+Language: en-GB

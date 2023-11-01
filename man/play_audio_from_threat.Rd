@@ -4,19 +4,16 @@
 \alias{play_audio_from_threat}
 \title{Play audio recording from threat appearance to the end}
 \usage{
-play_audio_from_threat(df, data_dir, drop_tld = TRUE)
+play_audio_from_threat(df)
 }
 \arguments{
 \item{df}{A trial results data frame}
-
-\item{data_dir}{The path to the data directory.}
-
-\item{drop_tld}{Drop top-level directory in stored file location? (default TRUE)}
 }
 \value{
 Returns no value
 }
 \description{
 Finds threat start and location of microphone recording in a data frame, and plays the audio from the start of the threat, using 'play_audio_section'.
-Expects columns 'threat_appear_time', 'start_time', 'mic.wav_location_0'.
+Expects columns 'threat_appear_time', 'start_time', 'mic.wav_location_0'. Expects absolute paths, use `update_file_pointers` to
+update them if necessary.
 }

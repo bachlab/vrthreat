@@ -27,6 +27,13 @@ extract_orientation <-
            convert2cos = TRUE,
            ...) {
 
+    if (!is.data.frame(ref_movement) ||
+        nrow(ref_movement) == 0 ||
+        is.null(target_position) ||
+        is.na(min_time) ||
+        is.na(max_time))
+      return(NA_real_) # make sure not empty
+
     DV <- ifelse(convert2cos, "target_ratio", "target_abs_diff")
 
     out_df <-
@@ -75,6 +82,13 @@ extract_orientation2 <-
            convert2cos = TRUE,
            ...) {
 
+
+    if (!is.data.frame(ref_movement) ||
+        nrow(ref_movement) * nrow(target_movement) == 0  ||
+        is.na(min_time) ||
+        is.na(max_time))
+      return(NA_real_) # make sure not empty
+
     DV <- ifelse(convert2cos, "target_ratio", "target_abs_diff")
 
     out_df <-
@@ -115,7 +129,15 @@ extract_fixation <-
            target,
            min_time = min(df$time),
            max_time = max(df$time)) {
+
+    if (!is.data.frame(df) ||
+        nrow(df) == 0  ||
+        is.na(min_time) ||
+        is.na(max_time))
+      return(NA_real_) # make sure not empty
+
     episode_duration <- max_time - min_time
+
 
     df %>%
       # compute dt
@@ -155,6 +177,13 @@ extract_fruit_task <-
            max_time = Inf,
            method = "sum") {
 
+
+    if (!is.data.frame(df) ||
+        nrow(df) == 0  ||
+        is.na(min_time) ||
+        is.na(max_time))
+      return(NA_real_) # make sure not empty
+
     episode_duration <- ifelse(method == "rate", max_time - min_time, 1)
 
     df %>%
@@ -193,9 +222,11 @@ extract_speed <-
            method = "mean",
            samplingrate = 10) {
 
-    if (is.na(min_time) ||
+    if (!is.data.frame(df) ||
+        is.na(min_time) ||
         is.na(max_time) ||
-        min_time > (max_time - 1 / samplingrate))
+        min_time > (max_time - 1 / samplingrate) ||
+        nrow(df) == 0)
       return(NA_real_)
 
     # resample over entire data frame to avoid edge effects
@@ -251,7 +282,8 @@ extract_speed_angular <-
            samplingrate = 10,
            direction = c(0, 0, 1)) {
 
-    if (is.na(min_time)  ||
+    if (!is.data.frame(df) ||
+        is.na(min_time)  ||
         is.na(max_time) ||
         min_time > (max_time - 1 / samplingrate) ||
         nrow(df) == 0  ||
@@ -307,7 +339,8 @@ extract_gaze_elevation <-
         ifelse(("gaze_direction_x" %in% colnames(df)), 100, 10)
     }
 
-    if (is.na(min_time)  ||
+    if (!is.data.frame(df) ||
+        is.na(min_time)  ||
         is.na(max_time) ||
         min_time > (max_time - 1 / samplingrate) ||
         nrow(df) == 0 ||
@@ -332,7 +365,7 @@ extract_gaze_elevation <-
 #' @param ref_movement A dataframe of movement (must contain standard trajectory
 #'   columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).
 #' @param ref_position Reference position, stored as a list
-#'   containing `"pos_x"`, `"pos_y"`, `"pos_z"` items.
+#'   containing `"pos_x"`, `"pos_z"` items.
 #' @param min_time Minimum time within the ref_movement (taken from `"time"`
 #'   column) to search.
 #' @param max_time Maximum time within the ref_movement (taken from `"time"`
@@ -349,6 +382,14 @@ extract_movement_dist <-
            min_time = min(ref_movement$time),
            max_time = max(ref_movement$time),
            method = "min") {
+
+    if (!is.data.frame(ref_movement) ||
+        nrow(ref_movement) == 0 |
+        is.null(ref_position)  ||
+        is.na(min_time) ||
+        is.na(max_time))
+      return(NA_real_) # make sure not empty
+
     episode_duration <- max_time - min_time
 
     ref_movement <-
@@ -415,9 +456,15 @@ extract_movement2_dist <-
            max_time = max(c(df1$time, df2$time)),
            method = "min",
            samplingrate = 10) {
-    if (is.na(min_time) ||
-        min_time > (max_time - 1 / samplingrate))
-      return(NA)
+
+    if (!is.data.frame(df1) ||
+        !is.data.frame(df2) ||
+        is.na(min_time) ||
+        is.na(max_time) ||
+        min_time > (max_time - 1 / samplingrate) ||
+        nrow(df1) * nrow(df2) == 0)
+    return(NA_real_)
+
 
 
     # create joint resampling index
@@ -487,6 +534,11 @@ extract_timestamp_duplicates <-
            min_time = min(df$time),
            max_time = max(df$time),
            method = "max") {
+
+    if(!is.data.frame(df) ||
+       is.na(min_time) ||
+       is.na(max_time))
+      return(NA_real_)
 
     df <-
       df %>%

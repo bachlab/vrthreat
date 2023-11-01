@@ -4,7 +4,13 @@
 \alias{guess_move_from_pos}
 \title{Guess First Move From Position}
 \usage{
-guess_move_from_pos(pos, ref_movement, max_dist = 0.2)
+guess_move_from_pos(
+  pos,
+  ref_movement,
+  max_dist = 0.2,
+  min_time = min(ref_movement$time),
+  max_time = max(ref_movement$time)
+)
 }
 \arguments{
 \item{pos}{A list containing `x` `y` `z` of fixed position.}

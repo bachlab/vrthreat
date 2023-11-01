@@ -36,31 +36,19 @@ play_audio_section <- function(audiofile,
 #' Play audio recording from threat appearance to the end
 #'
 #' Finds threat start and location of microphone recording in a data frame, and plays the audio from the start of the threat, using 'play_audio_section'.
-#' Expects columns 'threat_appear_time', 'start_time', 'mic.wav_location_0'.
+#' Expects columns 'threat_appear_time', 'start_time', 'mic.wav_location_0'. Expects absolute paths, use `update_file_pointers` to
+#' update them if necessary.
 #'
 #' @param df        A trial results data frame
-#' @param data_dir  The path to the data directory.
-#' @param drop_tld  Drop top-level directory in stored file location? (default TRUE)
-#'
 #'
 #' @return Returns no value
 #' @export
 #'
 #' @examples
-play_audio_from_threat <- function(df,
-                                   data_dir,
-                                   drop_tld = TRUE) {
+play_audio_from_threat <- function(df) {
 
   start_time <- df$threat_appear_time - df$start_time
-  if (!drop_tld) {
-    audiofiles <-
-      file.path(data_dir, df$mic.wav_location_0)
-  } else {
-    audiofiles <-
-      file.path(data_dir,
-                purrr::map(df$mic.wav_location_0, remove_tld))
-  }
-  purrr::map2(audiofiles, start_time, play_audio_section)
+  purrr::map2(df$mic.wav_location_0, start_time, play_audio_section)
 }
 
 
@@ -127,8 +115,6 @@ detect_sound <-
 #' classification
 #'
 #' @param df A trial results data frame
-#' @param audio_path The path to the data directory
-#' @param drop_tld Drop top-level directory in stored file location? (default TRUE)
 #' @param trials An integer selection of trials to play (corresponding to rows in output file), default: all rows
 #' @param sound_classification_file An output file name (existing files will be re-used; otherwise a new file is created), default: `sound_classification.csv`
 #' @param sound_detection_file A file with previously detected sounds (expected columns: `sound_detected` with 0/1 entries, `sound_comment`), default: use all sounds
@@ -140,12 +126,11 @@ detect_sound <-
 sound_classification_manual <-
   function (df,
             audio_path,
-            drop_tld = TRUE,
             trials = 1:nrow(df),
             sound_classification_file = "sound_classification.csv",
             sound_detection_file = "") {
 
-    if (is.na(trials)) trials <- 1:nrow(df)
+    if (any(is.na(trials))) trials <- 1:nrow(df)
 
     # write (or read) output file
     if (!file.exists(sound_classification_file)) {
@@ -158,6 +143,7 @@ sound_classification_manual <-
                              by = "mic.wav_location_0",
                              keep = FALSE) %>%
               dplyr::filter(sound_detected == 1) %>%
+              dplyr::filter(!is.na(threat_appear_time)) %>%
               dplyr::select(
                 c(
                   "mic.wav_location_0",
@@ -189,5 +175,5 @@ sound_classification_manual <-
     trial_sound %>%
       slice(trials) %>%
       rowwise() %>%
-      play_audio_from_threat(audio_path, drop_tld)
+      play_audio_from_threat()
   }

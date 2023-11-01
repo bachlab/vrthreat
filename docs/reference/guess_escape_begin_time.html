@@ -75,6 +75,7 @@ without resampling.</p>
 <span>  span <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  min_speed <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  min_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">time</span><span class="op">)</span>,</span>
+<span>  max_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">time</span><span class="op">)</span>,</span>
 <span>  indx <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -105,6 +106,10 @@ without resampling.</p>
 <dd><p>minimum time to start searching for escape</p></dd>
 
 
+<dt>max_time</dt>
+<dd><p>maximum time to search for escape</p></dd>
+
+
 <dt>indx</dt>
 <dd><p>currently disabled (only needed for debugging)</p></dd>
 
@@ -131,7 +136,7 @@ a bit noisy and this would require some more elaborate signal processing/filteri
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

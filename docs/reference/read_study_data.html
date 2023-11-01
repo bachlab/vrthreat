@@ -75,8 +75,13 @@ top-level directory name in the VR output will be replaced by this path.</p></dd
 
 <dt>metapath</dt>
 <dd><p>The path that contains the meta data. This must contain the
-following 4 csv files: replacements.csv, participants_excluded.csv,
-episodes_info.csv, threats_info.csv</p></dd>
+following csv files, which are used in their order of appeareance:
+1. replacements.csv: joins interrupted participants. Must contain columns
+   ppid_old, ppid_new, session_num_new, last_trial_exclude
+2. participants_excluded.csv: participants to exclude. Must contain column
+   ppid
+3. trial_exclusions.csv: individual trials to exclude. Must contain columns
+   ppid, session_num, trial_num</p></dd>
 
 </dl></div>
     <div id="value">
@@ -98,7 +103,7 @@ episodes_info.csv, threats_info.csv</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

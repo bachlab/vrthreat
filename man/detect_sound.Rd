@@ -16,9 +16,9 @@ detect_sound(
 
 \item{start_time}{A start time (default 0)}
 
-\item{volume_threshold}{A (vector of) volume treshold(s)}
+\item{volume_threshold}{A (vector of) volume threshold(s)}
 
-\item{duration_threshold}{A (vector of) duration treshold(s) of same size}
+\item{duration_threshold}{A (vector of) duration threshold(s) of same size}
 }
 \value{
 a logical vector of same length as the threshold vectors

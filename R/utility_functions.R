@@ -76,12 +76,13 @@ find_hierarchy_object_any <- function(x, any_names, include_children = FALSE) {
 #'
 #' @param df A session log data frame
 #' @param messages A vector of string
+#' @param .colnames A vector of column names, the same size as `messages`
 #'
-#' @return A data frame with `trial_num` and `message` (boolean)
+#' @return A data frame with `trial_num` and `.colnames` (boolean)
 #' @export
 #'
 #' @examples
-find_log_message <- function(df, messages) {
+find_log_message <- function(df, messages, .colnames) {
   allmessages <- df %>%
     pull("message")
 
@@ -121,6 +122,7 @@ find_log_message <- function(df, messages) {
   # find message and assign to trials
   find_message <-
     function(message,
+             .colnames,
              allmessages,
              trl_no,
              trl_start_indx,
@@ -142,6 +144,16 @@ find_log_message <- function(df, messages) {
 
   }
 
-  purrr::map_dfc(messages, find_message, allmessages, trl_no, trl_start_indx, trl_end_indx) %>%
+  df <-
+    purrr::map2(messages,
+                .colnames,
+                find_message,
+                allmessages,
+                trl_no,
+                trl_start_indx,
+                trl_end_indx)
+  names(df) <- .colnames
+  df %>%
+    tibble::as_tibble() %>%
     dplyr::mutate(trial_num = trl_no)
 }

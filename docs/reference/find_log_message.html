@@ -60,7 +60,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">find_log_message</span><span class="op">(</span><span class="va">df</span>, <span class="va">messages</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">find_log_message</span><span class="op">(</span><span class="va">df</span>, <span class="va">messages</span>, <span class="va">.colnames</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -72,12 +72,16 @@
 <dt>messages</dt>
 <dd><p>A vector of string</p></dd>
 
+
+<dt>.colnames</dt>
+<dd><p>A vector of column names, the same size as `messages`</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
     
 
-<p>A data frame with `trial_num` and `message` (boolean)</p>
+<p>A data frame with `trial_num` and `.colnames` (boolean)</p>
     </div>
 
   </div>
@@ -92,7 +96,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

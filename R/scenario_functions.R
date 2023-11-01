@@ -45,13 +45,18 @@ find_start_position <- function(scenario_data) {
 #'
 #' @examples
 find_fruit_position <- function(scenario_data) {
+
   fruit_task <- find_hierarchy_object_any(
     scenario_data,
     fruit_gameobject_names,
     include_children = TRUE
   )
 
+  if (is.null(fruit_task)) return(NULL)
+
   walkhere <- find_hierarchy_object(fruit_task, "WalkHere")
+
+  if (is.null(walkhere)) return(NULL)
 
   names(walkhere[["position"]])     <- c("pos_x", "pos_y", "pos_z")
   names(walkhere[["euler_angles"]]) <- c("rot_x", "rot_y", "rot_z")
@@ -79,6 +84,7 @@ find_safe_position <- function(scenario_data) {
   safehouse <- find_hierarchy_object(scenario_data, "SafeHouse")
 
   if (is.null(safehouse)) safehouse <- find_hierarchy_object(scenario_data, "Safe No Cracks")
+  if (is.null(safehouse)) return(NULL)
 
   names(safehouse[["position"]])  <- c("pos_x", "pos_y", "pos_z")
   names(safehouse[["euler_angles"]]) <- c("rot_x", "rot_y", "rot_z")
@@ -106,6 +112,8 @@ find_unity_threat_name <- function(scenario_data) {
                           include_children = FALSE,
                           partial_match = TRUE)
 
+    if(is.null(threat_name)) return(NA)
+
     threat_name$name
 
 }
@@ -125,11 +133,15 @@ find_unity_threat_name <- function(scenario_data) {
 #' @examples
 find_initial_threat_position <- function(scenario_data) {
 
+  threat <- find_unity_threat_name(scenario_data)
+
+  if (is.null(threat) || is.na(threat)) return(NULL)
   threat_pos <- find_hierarchy_object(scenario_data,
-                                      find_unity_threat_name(scenario_data),
+                                      threat,
                                       include_children = TRUE,
                                       partial_match = FALSE)
 
+  if (is.null(threat_pos)) return(NULL)
 
   threat_pos$position
 
@@ -152,6 +164,9 @@ find_initial_threat_position <- function(scenario_data) {
 #'
 #' @examples
 get_time_of_first_event <- function(sequence_data, event_type) {
+
+  if (is.null(sequence_data) || all(is.na(sequence_data))) return(NA_real_)
+
   results <- sequence_data$results
 
   for (result in sequence_data$results) {

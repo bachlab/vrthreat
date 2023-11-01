@@ -12,8 +12,13 @@ The path name may have been changed during data curation, and the original
 top-level directory name in the VR output will be replaced by this path.}
 
 \item{metapath}{The path that contains the meta data. This must contain the
-following 4 csv files: replacements.csv, participants_excluded.csv,
-episodes_info.csv, threats_info.csv}
+following csv files, which are used in their order of appeareance:
+1. replacements.csv: joins interrupted participants. Must contain columns
+   ppid_old, ppid_new, session_num_new, last_trial_exclude
+2. participants_excluded.csv: participants to exclude. Must contain column
+   ppid
+3. trial_exclusions.csv: individual trials to exclude. Must contain columns
+   ppid, session_num, trial_num}
 }
 \value{
 A data frame with all experiment data
