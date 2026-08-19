@@ -4,13 +4,16 @@
 \alias{apply_replacements}
 \title{Apply replacements using replacement data frame.}
 \usage{
-apply_replacements(df, replacements_df)
+apply_replacements(df, replacements_df, remove_duplicates = TRUE)
 }
 \arguments{
 \item{df}{A trial results data frame.}
 
 \item{replacements_df}{A data frame with columns
 `"ppid_old"`,`"ppid_new"`,`"session_num_new"`, `"last_trial_exclude"`}
+
+\item{remove_duplicates}{Whether or not to remove consecutive duplicate trials 
+(default: `TRUE`).}
 }
 \description{
 Replaces the `ppid` and `session_num` of data in your trial results. This is
@@ -22,5 +25,6 @@ the episode column) are replaced with those in the replacement session.
 Often, trials are repeated because of a failure. If `last_trial_exclude` is
 set to 1, then the last trial from the previous session of the matched ppid
 will be excluded. Afterwards, in case the exact same trial was repeated in
-a row, only the first occurrence will be retained.
+a row in the last trial of the aborted session and the first trial of the new 
+session, only the first occurrence can be retained if `remove_duplicates` is set.
 }

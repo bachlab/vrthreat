@@ -2,7 +2,7 @@
 % Please edit documentation in R/maths_functions.R
 \name{calculate_2d_angle_deg}
 \alias{calculate_2d_angle_deg}
-\title{Calculate 2D angle positive z-axis and a line from reference to target position in degrees}
+\title{Calculate 2D angle between positive z-axis and a line from reference to target position in degrees}
 \usage{
 calculate_2d_angle_deg(target_x, target_z, ref_x = 0, ref_z = 0)
 }
@@ -20,5 +20,5 @@ Angle between a line from reference to target vector and positive
 z-axis, measured clockwise and in [-180, 180]
 }
 \description{
-Calculate 2D angle positive z-axis and a line from reference to target position in degrees
+Calculate 2D angle between positive z-axis and a line from reference to target position in degrees
 }

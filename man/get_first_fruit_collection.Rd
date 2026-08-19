@@ -14,4 +14,5 @@ a time stamp
 }
 \description{
 Gets the time stamp of the first collected fruit from a fruit collection data frame
+(This function is a legacy wrapper for get_fruit_time)
 }

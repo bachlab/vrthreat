@@ -51,7 +51,7 @@ replace_redcapid_ppid <- function(df, redcap_ppid_map){
 read_quest_raw <- function(rawquestpath, prefix_fn, participants_excluded, redcap_ppid_map){
 
   # find complete file name with the given prefix file name
-  comp_fn = grep(prefix_fn, list.files(rawquestpath), value = TRUE)
+  comp_fn = grep(prefix_fn, list.files(rawquestpath,pattern = "\\.csv$"), value = TRUE)
 
   readr::read_csv(
     file.path(rawquestpath, comp_fn),

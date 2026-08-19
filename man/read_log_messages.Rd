@@ -4,14 +4,20 @@
 \alias{read_log_messages}
 \title{Read log messages}
 \usage{
-read_log_messages(data, messages, .colnames)
+read_log_messages(df, messages, .colnames)
 }
 \arguments{
-\item{data}{Data frame of trial results, containing column `res_path`}
+\item{df}{Data frame of trial results, containing column `res_path`}
 
 \item{messages}{Vector of string messages to detect}
 
-\item{.colnames}{Vector of column names to insert into `data_dir`}
+\item{.colnames}{Vector of column names to insert into `df`}
+}
+\value{
+Original data frame with the following columsn added:
+ `.colnames` (boolean), `.colnames_message`, `.colnames_time` ,
+ `.colnames_number`, where the last three refer to the first detected
+ message per trial
 }
 \description{
 Read log messages from log files to combine with trial results

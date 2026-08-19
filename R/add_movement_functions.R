@@ -78,6 +78,165 @@ add_rot <- function(df,
 
 }
 
+#' Add vector of a reference object relative to a
+#' stationary target
+#'
+#' Returns the same data frame with added vector.
+#'
+#' @param ref_movement A data frame with reference movement, e.g. the head or
+#'   the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`,
+#'  columns. Eye-tracker file should have `gaze_origin_x`,
+#'   `gaze_origin_y`,`gaze_origin_z`columns
+#' @param target_position A list containing `pos_x` `pos_y` `pos_z` target position
+#'
+#' @return `rev_movement` with new columns `vector2target_x` `vector2target_y`
+#' `vector2target_z`
+#' @export
+#'
+#' @examples
+
+add_vector2target <- function(ref_movement, target_position) {
+  # Use a tidy selection based on whether the df contains eye tracker or other tracker data
+  x_col <- if ("gaze_origin_x" %in% names(ref_movement)) "gaze_origin_x" else "pos_x"
+  y_col <- if ("gaze_origin_y" %in% names(ref_movement)) "gaze_origin_y" else "pos_y"
+  z_col <- if ("gaze_origin_z" %in% names(ref_movement)) "gaze_origin_z" else "pos_z"
+
+  temp_df <- ref_movement %>%
+    dplyr::mutate(
+      vector2target_x = target_position$pos_x - .[[x_col]],
+      vector2target_y = target_position$pos_y - .[[y_col]],
+      vector2target_z = target_position$pos_z - .[[z_col]]
+    ) %>%
+    dplyr::rowwise()  %>%
+    dplyr::ungroup()
+
+  return(temp_df)
+}
+
+
+#' Add gaze vector of a reference object relative to a
+#' target movement
+#'
+#' Returns the reference data frame with added vectors over time.
+#'
+#' @param ref_movement A data frame with reference movement, e.g. the head or
+#'   the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`,
+#'   `rot_x`, `rot_y`, `rot_z` columns. Eye-tracker file should have `gaze_origin_x`,
+#'   `gaze_origin_y`,`gaze_origin_z`columns
+
+#' @param target_movement Movement of point of interest (e.g threat movement)
+#' @param join_by = "time" Column by which to join the two data frames (character)
+#'
+#' @return `ref_movement` with columns `time`, `vector_to_target_x` `vector2target_y`
+#' `vector2target_z`  (raw vector relative
+#' to the moving target) added
+#' @export
+#'
+#' @examples
+
+
+add_vector2target2 <- function (ref_movement, target_movement, join_by = "time") {
+
+  df<-ref_movement
+  # Handle gaze dataframe
+  if(any(c("gaze_origin_x", "gaze_origin_y", "gaze_origin_z") %in% names(ref_movement))) {
+    df <- ref_movement %>%
+      dplyr::rename(
+        pos_x = gaze_origin_x,
+        pos_y = gaze_origin_y,
+        pos_z = gaze_origin_z
+      )
+  }
+
+  # Join ref_movement and target_movement with suffixes for overlapping column names
+  temp_df <- dplyr::left_join(
+    df,
+    target_movement,
+    by = join_by,
+    suffix = c("_ref", "_target")
+  )
+
+  # Mutate to add vector difference columns using the correct columns from the joined df
+  temp_df <- temp_df %>%
+    dplyr::mutate(
+      vector2target_x = pos_x_target - pos_x_ref,
+      vector2target_y = pos_y_target - pos_y_ref,
+      vector2target_z = pos_z_target - pos_z_ref
+    )%>%
+    dplyr::rowwise()  %>%
+    dplyr::ungroup()
+
+  if (nrow(temp_df) == 0) {
+    temp_df <- tibble(
+      time = NA_real_,
+      vector2target_x = NA_real_,
+      vector2target_y  = NA_real_,
+      vector2target_z = NA_real_
+    )
+  }
+
+  temp_df %>%
+    dplyr::select(time, vector2target_x,vector2target_y,vector2target_z) %>%
+    dplyr::right_join(ref_movement, by = "time")
+
+}
+
+
+
+#' Add column indicating if a stationary or moving target is in foveal view
+#'
+#' Returns the same data frame with added column `in_view`.
+#'
+#' @param eye_df An eyetracker data frame
+#' @param ref_pos A data frame with reference position as list or movement
+#' tibble with columns `pos_x`, `pos_y`, `pos_z`
+#' @param object_diameter Diameter of the object in m, default: 0.
+#' @param foveal_field The foveal field in degrees, default: 1°.
+#' @param direction Reference gaze direction, default: forward
+#'
+#' @return `ref_movement` with new columns `in_view`
+#' @export
+#'
+#' @examples
+
+add_in_view <- function(eye_df,
+                        ref_pos,
+                        object_diameter = 0,
+                        foveal_angle = 1,
+                        direction = c(0, 0, 1)) {
+  if (tibble::is_tibble(ref_pos)) {
+    ref_df <- ref_pos %>%
+      resample_movement(eye_df$time)
+    eye_df <- eye_df %>%
+      add_vector2target2(ref_df) %>%
+      dplyr::left_join(ref_df, by = "time")
+  } else {
+    eye_df <- eye_df %>%
+      add_vector2target(ref_pos) %>%
+      dplyr::mutate(pos_x = ref_pos$pos_x,
+                    pos_y = ref_pos$pos_y,
+                    pos_z = ref_pos$pos_z)
+  }
+
+  eye_df %>%
+    add_rot(direction) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      object_dist = sqrt(sum((
+        c(pos_x, pos_y, pos_z) - c(gaze_origin_x, gaze_origin_y, gaze_origin_z)
+      ) ^ 2)),
+      object_angle = abs(atan(object_diameter / object_dist)),
+      gaze_vector_cart_unity = list(c(R %*% direction)),
+      angle_diff = abs(angle_between(
+        gaze_vector_cart_unity,
+        c(vector2target_x, vector2target_y, vector2target_z)
+      )),
+      in_view = angle_diff < (object_angle + foveal_angle / 2)
+    ) %>%
+    dplyr::select(time, in_view) %>%
+    dplyr::left_join(eye_df, by = "time")
+}
+
 #' Add direction of the orientation of a reference object relative to a
 #' stationary target (in 2D, XZ).
 #'
@@ -252,8 +411,10 @@ add_angular_diff <- function(df,
                              direction = c(0, 0, 1)) {
 
   df %>%
+    # Add rotation matrices to the data frame based on the reference direction
     add_rot(direction) %>%
     dplyr::ungroup() %>%
+    # Add a lagged version of the rotation matrix column
     dplyr::mutate(R_next = dplyr::lag(R)) %>%
     dplyr::rowwise() %>%
     dplyr::mutate(angular_diff =
@@ -292,8 +453,7 @@ add_speed <- function(df) {
 #' Add gaze elevation to (head) movement or eye tracker data frame
 #'
 #' Takes a movement or eye tracker data frame, derives rotation matrices from orientation data,
-#' applies them to a reference direction vector, and calculates the row-by-row
-#' angular difference for the vector rotation.
+#' and adds the gaze elevation over the horizontal plane.
 #'
 #' @param df Movement or eye tracker or combined/resampled data frame. Expects either columns `rot_x`,
 #'  `rot_y`, `rot_z`, or columns `gaze_direction_x`, `gaze_direction_y`, `gaze_direction_z`

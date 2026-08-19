@@ -195,6 +195,7 @@ extract_fruit_task <-
       nrow() / episode_duration
   }
 
+
 #' Extract speed (peak or average speed) between a `min_time` and `max_time`.
 #'
 #' You can supply timestamps to `min_time` and `max_time` (e.g timestamp of
@@ -432,15 +433,16 @@ extract_movement_dist <-
 #'
 #' NOTE: because sampling times can differ between data frames, data are
 #' resampled at default rate of 10 Hz, and to avoid an impact of tracker
-#' glitches they are median-smoothed over 3 data points (300 ms).
+#' glitches they are median-smoothed over 3 data points (300 ms), using the function
+#' `combine_movement()`
 #'
 #' @param df1 A dataframe of movement (must contain standard trajectory
 #'   columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).
 #' @param df2 A dataframe of movement (must contain standard trajectory
 #'   columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).
-#' @param min_time Minimum time within the ref_movement (taken from `"time"`
+#' @param min_time Minimum time within the resampled movement (taken from `"time"`
 #'   column) to search.
-#' @param max_time Maximum time within the ref_movement (taken from `"time"`
+#' @param max_time Maximum time within the resampled movement (taken from `"time"`
 #'   column) to search.
 #' @param method  whether to extract min (default), max or mean
 #' @param samplingrate resampling rate
@@ -457,49 +459,30 @@ extract_movement2_dist <-
            method = "min",
            samplingrate = 10) {
 
-    if (!is.data.frame(df1) ||
-        !is.data.frame(df2) ||
-        is.na(min_time) ||
-        is.na(max_time) ||
-        min_time > (max_time - 1 / samplingrate) ||
-        nrow(df1) * nrow(df2) == 0)
-    return(NA_real_)
+    df <-
+      combine_movement(
+      df1 = df1,
+      df2 = df2,
+      min_time = min_time,
+      max_time = max_time,
+      samplingrate = samplingrate
+    )
 
+    if (is.null(df) || nrow(df) == 0)
+      return(NA_real_)
 
-
-    # create joint resampling index
-    start_time <- max(df1$time[1], df2$time[1])
-
-    joint_resampling_index <- function(df,
-                                       start_time,
-                                       sr = samplingrate) {
-      new_time <-
-        create_resampling_index(max(df$time) - start_time,
-                                samplingrate) - (min(df$time) - start_time)
-      new_time[new_time > 0]
-    }
-
-    # preprocess and combine both data frames
-    resample_filter_pos(df1,
-                        joint_resampling_index(df1, start_time),
-                        span = 3) %>%
-      dplyr::inner_join(
-        resample_filter_pos(df2,
-                            joint_resampling_index(df2, start_time),
-                            span = 3),
-        by = "time",
-        suffix = c(".1", ".2")
-      ) %>%
-      # remove values outside time range
-      dplyr::filter(min_time <= time, time <= max_time) %>%
+    df %>%
       # calculate moment-by-moment distance
       dplyr::mutate(distance = calculate_2d_dist(new_pos_x.1,
-                                                  new_pos_z.1,
-                                                  new_pos_x.2,
-                                                  new_pos_z.2)) %>%
+                                                 new_pos_z.1,
+                                                 new_pos_x.2,
+                                                 new_pos_z.2)) %>%
       # and summarise
       dplyr::pull(., distance) %>%
       {
+        # the evaluation of the expression "method" in switch looks awkward
+        # (one might expect "min" instead of min)
+        # but it is correct, see help(switch)
         switch(
           method,
           min = min(., na.rm = TRUE),
@@ -517,7 +500,7 @@ extract_movement2_dist <-
 #' Returns the number of duplicated time stamps, total number of duplicates,
 #' or maximum number of duplicates.
 #'
-#' @param df A summarised movement data frame (must contain a column `n`
+#' @param df A summarised movement data frame (must contain a column `n`)
 #' @param min_time Minimum time within the ref_movement (taken from `"time"`
 #'   column) to search.
 #' @param max_time Maximum time within the ref_movement (taken from `"time"`
@@ -564,3 +547,73 @@ extract_timestamp_duplicates <-
         )
       }
   }
+
+
+#' Extract recording duration of a movement tibble
+#'
+#' Extracting the recording duration of a movement tibble can be useful to check
+#' the synchronisation of different trackers and devices.
+#'
+#' @param df A movement tibble (must contain a column `time`)
+#'
+#' @returns Scalar duration, i.e. difference between last and first time stamp
+#' @export
+#'
+#' @examples
+extract_recording_duration <- function(df) {
+
+  if(!is.data.frame(df)) return(NA_real_)
+
+  df %>%
+    dplyr::pull(time) %>%
+    range() %>%
+    diff()
+
+}
+
+#' Extract 2D Path Length from Movement Data
+#'
+#' Calculates the total 2D path length from x- and z-coordinate movement data,
+#' optionally within a specified time window. Assumes the data contains at least
+#' two rows with columns `pos_x`, `pos_z`, and `time`.
+#'
+#' @param movement_data A data frame containing `pos_x`, `pos_z`, and `time` columns.
+#' @param min_time Optional minimum time for filtering the movement data.
+#' @param max_time Optional maximum time for filtering the movement data.
+#'
+#' @return A numeric value representing the total path length, or `NA_real_` if
+#'   the input is invalid or insufficient.
+#'
+#' @examples
+#' extract_path_length(movement_data)
+#' extract_path_length(movement_data, min_time = 10, max_time = 50)
+extract_path_length <- function(movement_data, min_time = NULL, max_time = NULL) {
+  if (!is.data.frame(movement_data) || nrow(movement_data) < 2) {
+    cat("Invalid movement data: must be a data frame with at least two rows.\n Returning NA.\n")
+    return(NA_real_)
+  }
+  
+  filtered_data <- movement_data
+  
+  if (!is.null(min_time)) {
+    filtered_data <- dplyr::filter(filtered_data, time >= min_time)
+  }
+  if (!is.null(max_time)) {
+    filtered_data <- dplyr::filter(filtered_data, time <= max_time)
+  }
+  
+  if (nrow(filtered_data) < 2) {
+    cat("Insufficient rows after filtering: must have at least two rows.\n Returning NA.\n")
+    return(NA_real_)
+  }
+  
+  filtered_data %>%
+    dplyr::arrange(time) %>%
+    dplyr::mutate(next_pos_x = dplyr::lead(pos_x),
+                  next_pos_z = dplyr::lead(pos_z)) %>%
+    dplyr::filter(!is.na(next_pos_x) & !is.na(next_pos_z)) %>%
+    dplyr::mutate(distance = sqrt((next_pos_x - pos_x)^2 + (next_pos_z - pos_z)^2)) %>%
+    dplyr::pull(distance) %>%
+    sum(na.rm = TRUE)
+}
+

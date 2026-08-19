@@ -4,7 +4,12 @@
 \alias{read_study_data}
 \title{Read complete study data}
 \usage{
-read_study_data(rawpath, metapath)
+read_study_data(
+  rawpath,
+  metapath,
+  remove_duplicates = TRUE,
+  remove_tutorial_epochs = TRUE
+)
 }
 \arguments{
 \item{rawpath}{The path that contains the individual subjects' directories.
@@ -19,6 +24,12 @@ following csv files, which are used in their order of appeareance:
    ppid
 3. trial_exclusions.csv: individual trials to exclude. Must contain columns
    ppid, session_num, trial_num}
+
+\item{remove_duplicates}{Whether or not to remove duplications in replaced 
+ppids, see `apply_replacements` for more information. Default: `TRUE`.}
+
+\item{remove_tutorial_epochs}{whether or not to remove tutorial epochs from the data 
+set. Default: `TRUE`.}
 }
 \value{
 A data frame with all experiment data

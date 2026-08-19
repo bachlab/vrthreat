@@ -29,6 +29,11 @@ Scripts containing the functions for this package are located in the `R` directo
 
 Unit tests can be performed using the `devtools` and `testthat` packages if you clone the repository locally.
 
+```
+devtools::test()
+
+```
+
 ## Development
 
 Several shortcut functions for development are in the `shortcuts.R` script. You can use these to build documentation, the documentation website, run tests, etc.
@@ -48,3 +53,9 @@ Quick tips:
 * functions that deal with columns that contain embedded movement data frames: name corresponds to the name of the function that processes the individual movement data frames, with "_cols" appended
 * functions that add a column to a movement data frame and return the same data frame without encapsulation (for use in `extract_` functions)
 * functions that extract a scalar value from a movement data frame: `extract_...` (avoiding the word `summarise` which in the tidyverse stands for summarising a data frame across rows into a new data frame)
+
+
+
+
+
+

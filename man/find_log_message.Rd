@@ -14,7 +14,9 @@ find_log_message(df, messages, .colnames)
 \item{.colnames}{A vector of column names, the same size as `messages`}
 }
 \value{
-A data frame with `trial_num` and `.colnames` (boolean)
+A data frame with `trial_num`, `.colnames` (boolean), `.colnames_message`
+`.colnames_time` , `.colnames_number`, where the last three refer to the first
+detected message per trial
 }
 \description{
 Find messages in a session log and assign to trials

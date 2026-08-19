@@ -59,23 +59,27 @@ fix_old_names <- function(df){
 #' Often, trials are repeated because of a failure. If `last_trial_exclude` is
 #' set to 1, then the last trial from the previous session of the matched ppid
 #' will be excluded. Afterwards, in case the exact same trial was repeated in
-#' a row, only the first occurrence will be retained.
+#' a row in the last trial of the aborted session and the first trial of the new 
+#' session, only the first occurrence can be retained if `remove_duplicates` is set.
 #'
 #' @param df A trial results data frame.
 #' @param replacements_df A data frame with columns
 #'   `"ppid_old"`,`"ppid_new"`,`"session_num_new"`, `"last_trial_exclude"`
+#' @param remove_duplicates Whether or not to remove consecutive duplicate trials 
+#'   (default: `TRUE`).     
 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-apply_replacements <- function(df, replacements_df) {
+apply_replacements <- function(df, replacements_df, remove_duplicates = TRUE) {
 
   new_replacements_df <- replacements_df %>%
     dplyr::mutate(previous_session_num = session_num_new - 1)
 
-  df %>%
+  df <- 
+    df %>%
     dplyr::rowwise() %>%
     dplyr::mutate(
       session_num = with(
@@ -99,7 +103,11 @@ apply_replacements <- function(df, replacements_df) {
     dplyr::group_by(ppid, session_num) %>%
     dplyr::filter(!(last_trial_exclude == 1 &
                       trial_num == max(trial_num))) %>%
-    dplyr::select(!tidyselect::any_of(colnames(new_replacements_df))) %>%
+    dplyr::select(!tidyselect::any_of(colnames(new_replacements_df))) 
+  
+  if (remove_duplicates) {
+    df <- 
+      df %>%
     # when two epochs appear in a row across sessions then only keep the first one
     dplyr::mutate(
       first_trial = min(trial_num), # first trial per session
@@ -115,8 +123,10 @@ apply_replacements <- function(df, replacements_df) {
           trial_num == first_trial &
           previous_trial == last_trial
     )) %>%
-  dplyr::select(!c(first_trial, last_trial, previous_trial))
-
+    dplyr::select(!c(first_trial, last_trial, previous_trial))
+    }
+  
+  df 
 }
 
 #' Reorient movement columns to starting position.
@@ -364,6 +374,30 @@ summarise_movement_cols <-
         ))
   }
 
+#' Correct movement timing across columns
+#' 
+#' Convenient wrapper around `correct_movement_timing`. For provided columns,
+#' corrects the `time` column in nested movement data frames by a given offset
+#'
+#'
+#' @param df A trial results data frame
+#' @param .cols A tidy selection of columns
+#' @param offset_col A column name containing the offset for each row (string)
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+correct_movement_timing_cols <- function(df, .cols, offset_col) {
+  df %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      dplyr::across({{ .cols }}, 
+                    ~ list(correct_movement_timing(.x, .data[[offset_col]])),
+                    .names = "{.col}_corrected"
+      )
+    )
+}
 #' Check movement data columns
 #'
 #' Checks validity of movement tracker data by using `check_valid_movement` on all
@@ -420,7 +454,3 @@ check_tracker_cols <-
       ) %>%
       dplyr::select(!(tidyselect::starts_with("summary_valid_")))
   }
-
-
-
-

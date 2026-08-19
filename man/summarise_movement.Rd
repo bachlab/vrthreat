@@ -12,9 +12,11 @@ summarise_movement(df, by)
 \item{by}{= "time": time stamp key}
 }
 \description{
-Ensures that each time stamp is unique by averaging all rows within duplicated time stamp
-values (for rotation columns: circular mean). Also adds a column `n` which
-is the count of rows for this time stamp.
+Ensures that each time stamp is unique by removing all rows with NA time 
+stamps and averaging all rows within duplicated time stamp
+values (for rotation columns: circular mean). Also adds a column `n` which,
+is the count of rows for this time stamp, and a column `n_na` (constant
+across rows), which is the count of NA time stamp rows.
 This is useful because there can be several observations for a time stamp in a
 movement data frame. One reason is that the epoch can be "frozen" when the
 menu button is pressed, generating new data but freezing the timer.

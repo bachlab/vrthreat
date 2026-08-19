@@ -14,3 +14,6 @@ devtools::check_rhub()
 devtools::check_win_devel()
 
 devtools::release()
+
+# to install the created .tar.gz file
+# install.packages("C:/Users/Kornemann/Desktop/Data_Anlysis/vrthreat/vrthreat_0.1.0.tar.gz", repos = NULL, type = "source")

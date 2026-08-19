@@ -20,10 +20,10 @@ columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).}
 \item{df2}{A dataframe of movement (must contain standard trajectory
 columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).}
 
-\item{min_time}{Minimum time within the ref_movement (taken from `"time"`
+\item{min_time}{Minimum time within the resampled movement (taken from `"time"`
 column) to search.}
 
-\item{max_time}{Maximum time within the ref_movement (taken from `"time"`
+\item{max_time}{Maximum time within the resampled movement (taken from `"time"`
 column) to search.}
 
 \item{method}{whether to extract min (default), max or mean}
@@ -40,5 +40,6 @@ Searches two dataframes of movement trajectories and summarises distance
 \details{
 NOTE: because sampling times can differ between data frames, data are
 resampled at default rate of 10 Hz, and to avoid an impact of tracker
-glitches they are median-smoothed over 3 data points (300 ms).
+glitches they are median-smoothed over 3 data points (300 ms), using the function
+`combine_movement()`
 }

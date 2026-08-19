@@ -6,10 +6,10 @@
 \usage{
 sound_classification_manual(
   df,
-  audio_path,
   trials = 1:nrow(df),
   sound_classification_file = "sound_classification.csv",
-  sound_detection_file = ""
+  sound_detection_file = "",
+  from = "threat"
 )
 }
 \arguments{
@@ -20,8 +20,10 @@ sound_classification_manual(
 \item{sound_classification_file}{An output file name (existing files will be re-used; otherwise a new file is created), default: `sound_classification.csv`}
 
 \item{sound_detection_file}{A file with previously detected sounds (expected columns: `sound_detected` with 0/1 entries, `sound_comment`), default: use all sounds}
+
+\item{from}{A string indicating whether to play sound from "start" or from "threat" (default)}
 }
 \description{
-Play previously detected sounds from threat appearance to end for manual
+Play previously detected sounds from start or from threat appearance to end for manual
 classification
 }

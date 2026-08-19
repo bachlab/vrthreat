@@ -1,6 +1,7 @@
 #' Get time of first fruit collection
 #'
 #' Gets the time stamp of the first collected fruit from a fruit collection data frame
+#' (This function is a legacy wrapper for get_fruit_time)
 #'
 #' @param df Fruit collection data frame, expected columns: `time`, `event`
 #'
@@ -9,21 +10,48 @@
 #'
 #' @examples
 get_first_fruit_collection <- function(df) {
-  if (!is.data.frame(df) ||
-      nrow(df) == 0)
-    return(NA_real_)
-
-  df %>%
-    filter(event == "collect") %>%
-    {
-      if (nrow(.) == 0)
-        NA_real_
-      else {
-        slice(., 1) %>%
-          pull(time)
-      }
-    }
+  get_fruit_time(df, n = 1, event_type = "collect")
 }
+
+#' Get fruit appearance or collect time for the n-th fruit
+#' This function returns the exact time stamp of this fruit.
+#'
+#' @param df A fruit collection data frame. Expected columns are `time` and `event`.
+#' @param n A specific fruit (integer) or "last" (default: 1)
+#' @param event_type "appear" or "collect" (default)
+#'
+#' @return Time stamp
+#' @export
+#'
+#' @examples
+get_fruit_time <-
+  function(df,
+           n = 1,
+           event_type = "collect") {
+    if (!is.data.frame(df) ||
+        nrow(df) == 0  ||
+        (!is.numeric(n) &
+         (!is.character(n) || n != "last")) ||
+        n <= 0)
+      return(NA_real_) # make sure not empty
+
+
+    df <-
+      df %>%
+      # find collection events
+      dplyr::filter(event == event_type)
+
+    if (n == "last")
+      n <- nrow(df)
+
+    if (nrow(df) == 0 ||
+        nrow(df) < n)
+      return(NA_real_)
+
+    df %>%
+      slice(n) %>%
+      pull(time)
+  }
 
 
 #' Guess/interpolate position at a point in time
@@ -38,6 +66,7 @@ get_first_fruit_collection <- function(df) {
 guess_pos_at_time <- function(df, ref_time) {
   if (!is.data.frame(df)   ||
       nrow(df) == 0 ||
+      is.na(ref_time) ||
       ref_time < min(df$time) ||
       ref_time > max(df$time))
     return(NA_real_)
@@ -55,9 +84,14 @@ guess_pos_at_time <- function(df, ref_time) {
 
 #' Guess First Move From Position
 #'
-#' Guess the time at which the player initially moved away from a fixed position
+#' Guess the time at which the player initially moved away from a fixed position.
+#' This is evaluated within the horizontal plane only (2D).
+#' If ref_pos is given, then the function evaluates the orthogonal distance along
+#' the line pos-ref_pos
+#' (This function is a legacy wrapper for guess_move_at_pos())
 #'
-#' @param pos A list containing `x` `y` `z` of fixed position.
+#' @param pos A list containing `pos_x` `pos_y` `pos_z` of fixed position.
+#' @param ref_pos Optional: a second list of the same type
 #' @param ref_movement A data frame with reference movement, e.g. the head or
 #'   the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`
 #'   columns.
@@ -73,22 +107,91 @@ guess_pos_at_time <- function(df, ref_time) {
 #' @examples
 guess_move_from_pos <-
   function(pos,
+           ref_pos = NULL,
            ref_movement,
            max_dist = 0.2,
            min_time = min(ref_movement$time),
            max_time = max(ref_movement$time)) {
-    if (nrow(ref_movement) == 0)
-      return(NA_real_)
-    if (is.null(pos))
+
+    guess_move_at_pos(
+      pos = pos,
+      ref_pos = ref_pos,
+      ref_movement = ref_movement,
+      max_dist = max_dist,
+      min_time = min_time,
+      max_time = max_time,
+      method = "from"
+    )
+  }
+
+
+#' Guess First Move From or To Position
+#'
+#' Guess the time at which the player initially moved away from, or to, a fixed position.
+#' This is evaluated within the horizontal plane only (2D).
+#' If ref_pos is given, then the function evaluates the orthogonal distance along
+#' the line pos-ref_pos
+#'
+#' @param pos A list containing `pos_x` `pos_y` `pos_z` of fixed position.
+#' @param ref_pos Optional: a second list of the same type
+#' @param ref_movement A data frame with reference movement, e.g. the head or
+#'   the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`
+#'   columns.
+#' @param max_dist Maximum distance in meters before player is
+#'   classified as away from the position
+#' @min_time Minimum time to look for move (default: start of data frame)
+#' @max_time Maximum time to look for move (default: end of data frame)
+#' @method "`from`" (default) or "`to`"
+#'
+#' @return A time stamp (Unity time) representing the time when the participant
+#'   initially moved from or to the position.
+#' @export
+#'
+#' @examples
+guess_move_at_pos <-
+  function(pos,
+           ref_pos = NULL,
+           ref_movement,
+           max_dist = 0.2,
+           min_time = min(ref_movement$time),
+           max_time = max(ref_movement$time),
+           method = "from") {
+
+    ref_movement <-
+      ref_movement %>%
+      dplyr::filter(time > min_time & time < max_time)
+
+    if (nrow(ref_movement) == 0 | is.null(pos))
       return(NA_real_)
 
+
+    p1 <- c(pos$pos_x, pos$pos_z)
+    if (!is.null(ref_pos)) {
+      p2 <- c(ref_pos$pos_x, ref_pos$pos_z)
+    } else {
+      p2 <- ref_pos
+    }
+
+    evaluate_dist <- function(p1, p2, p3) {
+      if (is.null(p2)) {
+        return(sqrt(sum((p1 - p3)^2)))
+      } else {
+        return(orthdist(p1, p2, p3))
+      }
+    }
+
     temp_tbl <- ref_movement %>%
-      filter(time > min_time & time < max_time) %>%
       dplyr::rowwise() %>%
       # this could be made faster with rowSums, but would need to catch the case that
       # df has only one row
-      dplyr::mutate(dist = norm(c(pos_x - pos$pos_x, 0, pos_z - pos$pos_z), type = "2"),
-                    near = dist < max_dist)
+      dplyr::mutate(
+        dist = evaluate_dist(p1, p2, c(pos_x, pos_z)),
+        # for method "from", near means close to ref_pos
+        # for method "to", near means away from ref_pos, i.e. close to initial pos
+        near = dplyr::if_else(method == "from",
+                       dist < max_dist,
+                       dist > max_dist)
+      )
 
     # get "runs" of when we were near or not
     runs <- with(temp_tbl, rle(near))
@@ -99,17 +202,16 @@ guess_move_from_pos <-
       return(NA_real_)
 
 
-    # we use the first run of when they were near the fruit
-    # gives us the index of the when they first left the fruit
+    # we use the first run of when they were near the initial position
+    # gives us the index of the when they first left the initial position
     move_idx <-
       with(runs, sum(lengths[seq(1, near_runs_idx[1])])) + 1
     # if we never escaped
     if (move_idx > nrow(temp_tbl))
-      return(NA)
+      return(NA_real_)
 
     with(temp_tbl, time[move_idx])
   }
-
 
 #' Guess start of escape
 #'
@@ -150,8 +252,8 @@ guess_escape_begin_time <- function(df,
 
   # get first time player is away from fruit bush; return NA if this never happens
   if (!is.data.frame(df) || is.na(min_time)) return(NA_real_)
-  max_time <- guess_move_from_pos(ref_pos,
-                                  filter(df, time > min_time & time < max_time),
+  max_time <- guess_move_from_pos(pos = ref_pos,
+                                  ref_movement = filter(df, time > min_time & time < max_time),
                                   max_dist = esc_dist)
   if (is.na(max_time)) return(NA_real_)
 
@@ -216,7 +318,7 @@ guess_escape_begin_time <- function(df,
 #' Guess end of escape time
 #'
 #' Guess the time at which escape movement ends, depending on trial outcome:
-#' Survived, killed: end of recording minus buffer and fade time
+#' If not going to safe house: end of recording minus buffer and fade time
 #' Escaped to safe house: crossing of the safe house threshold
 #' Assumes safe house size 1 m x 1 m x 2 m (height)
 #' Does not check whether people came through the door (only distance to safe
@@ -238,8 +340,8 @@ guess_escape_end_time <-
            end_state,
            ref_movement) {
 
-    if (!(end_state %in% c("Survived", "ConfrontedThreat", "Safe"))) return(NA_real_)
-    if (end_state %in% c("Survived", "ConfrontedThreat")) return(max_time)
+    if (!(stringr::str_to_lower(end_state) %in% c("survived", "confrontedthreat", "safe", "killedthreat"))) return(NA_real_)
+    if (!(stringr::str_to_lower(end_state) == "safe")) return(max_time)
     if (is.null(safe_pos)) return(max_time - 0.5)
 
     ref_movement %>%
@@ -273,13 +375,13 @@ guess_escape_abortion <-
            end_escape_time,
            end_state) {
 
-    if (!is.data.frame(df) ||
-        !(end_state == "Survived") ||
+    if (!is.data.frame(ref_movement) ||
+        !(stringr::str_to_lower(end_state) == "survived") ||
         is.na(begin_escape_time) ||
         is.na(end_escape_time) ||
         is.null(ref_position))
       return(list(tibble(distance = NA_real_, time = NA_real_)))
-
+  
     ref_movement <-
       ref_movement %>%
       # compute dt
@@ -312,6 +414,163 @@ guess_escape_abortion <-
   }
 
 
+
+#' Guess time at a distance between two movement data frames
+#'
+#' Guess (by interpolation) the time that two movement data frames were, for the
+#' first time, closer to (method "min") or further away than (method "max") a
+#' distance threshold
+#'
+#' @param df1 A dataframe of movement (must contain standard trajectory
+#'   columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).
+#' @param df2 A dataframe of movement (must contain standard trajectory
+#'   columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).
+#' @param min_time Minimum time within the resampled movement (taken from `"time"`
+#'   column) to search.
+#' @param max_time Maximum time within the resampled movement (taken from `"time"`
+#'   column) to search.
+#' @param method  whether to extract the first time distance is smaller ("min", default)
+#'   or larger than ("max") the threshold
+#' @param samplingrate resampling rate
+#'
+#'
+#' @return A scalar time
+#' @export
+#'
+#' @examples
+guess_time_at_dist2 <-
+  function(df1,
+           df2,
+           dist,
+           min_time = min(c(df1$time, df2$time)),
+           max_time = max(c(df1$time, df2$time)),
+           method = "min",
+           samplingrate = 10) {
+
+    df <-
+      combine_movement(
+        df1 = df1,
+        df2 = df2,
+        min_time = min_time,
+        max_time = max_time,
+        samplingrate = samplingrate
+      )
+
+    if (is.null(df) || nrow(df) == 0)
+      return(NA_real_)
+
+
+    time <-
+      df %>%
+      # calculate moment-by-moment distance
+      dplyr::mutate(distance = calculate_2d_dist(new_pos_x.1,
+                                                 new_pos_z.1,
+                                                 new_pos_x.2,
+                                                 new_pos_z.2)) %>%
+      {
+        if (method == "max") {
+          dplyr::filter(., distance > dist)
+        } else {
+          dplyr::filter(., distance < dist)
+        }
+      } %>%
+      dplyr::slice_head() %>%
+      dplyr::pull(time)
+
+    if (length(time) == 0) return(NA_real_)
+
+    return(time)
+
+}
+
+#' Estimate actual threat speed from movement data
+#'
+#' This function takes the threat movement up to player (2.5 m distance) or fruit
+#' position (.5 m distance), whatever is earlier, and computes the threat speed
+#' over this interval
+#'
+#' @param threat_df A movement tibble
+#' @param player_df A movement tibble
+#' @param scenario_data A scenario data structure
+#' @param threat_appear_time Threat appearance time
+#'
+#' @return A list with threat_speed and move_time (the duration of the movement
+#'         on which threat_speed is based on)
+#' @export
+#'
+#' @examples
+guess_threat_speed <- function(threat_df,
+                               player_df,
+                               scenario_data,
+                               threat_appear_time) {
+  # We assume that the jump animation is
+  # not triggered until the threat is within 2.5 m distance from the player,
+  # so this is a lower bound on the jump time
+  threat_near_player <- guess_time_at_dist2(
+    threat_df,
+    player_df,
+    dist = 2.5,
+    min_time = threat_appear_time,
+    method = "min",
+    samplingrate = 200
+  )
+
+  threat_near_fruit <- guess_move_at_pos(
+    pos = find_fruit_position(scenario_data),
+    ref_movement = threat_df,
+    max_dist = .5,
+    min_time = threat_appear_time,
+    method = "to"
+  )
+
+  # this is the maximum time we are taking into account for threat movement
+  threat_max_movement <-
+    find_min(c(threat_near_player, threat_near_fruit))
+
+  threat_speed <- extract_speed(
+    threat_df,
+    threat_appear_time,
+    threat_max_movement,
+    method = "mean",
+    samplingrate = 200
+  )
+
+  move_time <- (threat_max_movement - threat_appear_time)
+
+  return(list(threat_speed = threat_speed, move_time = move_time))
+}
+
+#' Guess first time an object is in foveal view
+#'
+#' @param eye_df An eyetracker data frame
+#' @param ref_pos A data frame with reference position as list or movement
+#' tibble with columns `pos_x`, `pos_y`, `pos_z`
+#' @param object_diameter Diameter of the object in m, default: 0.
+#' @param foveal_field The foveal field in degrees, default: 1°.
+#'
+#' @return A time stamp (real)
+#' @export
+#'
+#' @examples
+guess_first_view <- function(eye_df,
+                             ref_pos,
+                             object_diameter = 0,
+                             foveal_angle = 1) {
+  out_time <-
+    eye_df %>%
+    add_in_view(ref_pos,
+                object_diameter = object_diameter,
+                foveal_angle = foveal_angle) %>%
+    ungroup() %>%
+    filter(in_view == TRUE) %>%
+    slice(1) %>%
+    pull(time)
+
+  if (length(out_time) == 0) {
+    out_time <- NA_real_
+  }
+  return(out_time)
+}
 #' Prepare gaze data for further processing
 #'
 #' This is a convenience function to resample and filter head movement or
@@ -496,19 +755,21 @@ resample_movement <-
                dplyr::mutate(new_time = NA) %>%
                list())
     } else {
-      df %>%
-        # ungroup to make summarise work later (in case any groups exist)
-        dplyr::ungroup() %>%
-        # remove values outside time range
-        dplyr::filter((time > from) & (time < to)) %>%
-        # linearly interpolate
-        dplyr::summarise(dplyr::across(.cols = everything(),
+      
+      old_time <- df$time
+      
+        df %>%
+          # ungroup to make summarise work later (in case any groups exist)
+          dplyr::ungroup() %>%
+          # linearly interpolate
+         dplyr::summarise(dplyr::across(.cols = everything(),
                                        function(y)
                                          {if (length(y) > 0) return(
-                                                suppressWarnings(stats::approx(time - from, y, new_time)$y)) else return(
+                                                suppressWarnings(stats::approx(old_time - from, y, new_time)$y)) else return(
                                                 rep(NA, times = length(new_time)))}))  %>%
         # add new time
         dplyr::mutate(new_time = new_time)  %>%
+        dplyr::filter(time >= from & time <= to) %>%
         # and return a list
         list()
       }
@@ -652,9 +913,11 @@ average_timeseries <-
 
 #' Summarise movement data frame for each unique time stamp
 #'
-#' Ensures that each time stamp is unique by averaging all rows within duplicated time stamp
-#' values (for rotation columns: circular mean). Also adds a column `n` which
-#' is the count of rows for this time stamp.
+#' Ensures that each time stamp is unique by removing all rows with NA time 
+#' stamps and averaging all rows within duplicated time stamp
+#' values (for rotation columns: circular mean). Also adds a column `n` which,
+#' is the count of rows for this time stamp, and a column `n_na` (constant
+#' across rows), which is the count of NA time stamp rows.
 #' This is useful because there can be several observations for a time stamp in a
 #' movement data frame. One reason is that the epoch can be "frozen" when the
 #' menu button is pressed, generating new data but freezing the timer.
@@ -667,11 +930,15 @@ average_timeseries <-
 #'
 #' @examples
 summarise_movement <- function(df, by){
+  n_na <- sum(is.na(df$time))
+  
   df %>%
+    dplyr::filter(!is.na(time)) %>%
     dplyr::group_by(.data[[by]]) %>%
     dplyr::summarise(dplyr::across(.cols = !(tidyselect::contains("rot_")), ~ mean(.x, na.rm = T)),
                      dplyr::across(.cols =  tidyselect::contains("rot_"), ~ CircStats::deg(CircStats::circ.mean(CircStats::rad(.x[!is.na(.x)])))),
-                     n = n()) %>%
+                     n = n(),
+                     n_na = n_na) %>%
     list()
 }
 
@@ -748,3 +1015,189 @@ check_valid_movement <- function(df,
   )
 }
 
+#' Combine and resample two movement data frames
+#'
+#' This is a convenience function used in extract_ and get_ functions that deal
+#' with two movement data frames.
+#'
+#' NOTE: because sampling times can differ between data frames, data are
+#' resampled at default rate of 10 Hz, and to avoid an impact of tracker
+#' glitches they are median-smoothed over 3 data points (300 ms).
+#'
+#' @param df1 A dataframe of movement (must contain standard trajectory
+#'   columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).
+#' @param df2 A dataframe of movement (must contain standard trajectory
+#'   columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).
+#' @param min_time Minimum time within the resampled movements (taken from `"time"`
+#'   column) to search.
+#' @param max_time Maximum time within the resampled movements (taken from `"time"`
+#'   column) to search.
+#' @param samplingrate resampling rate
+#'
+#' @return a combined data frame with original position columns suffixed by .1 and .2
+#' @export
+#'
+#' @examples
+combine_movement <- function(df1,
+                             df2,
+                             min_time = min(c(df1$time, df2$time)),
+                             max_time = max(c(df1$time, df2$time)),
+                             samplingrate = 10) {
+  if (!is.data.frame(df1) ||
+      !is.data.frame(df2) ||
+      is.na(min_time) ||
+      is.na(max_time) ||
+      min_time > (max_time - 1 / samplingrate) ||
+      nrow(df1) * nrow(df2) == 0)
+    return(NULL)
+
+  # create joint resampling index
+  start_time <- max(df1$time[1], df2$time[1])
+
+  joint_resampling_index <- function(df,
+                                     start_time,
+                                     sr = samplingrate) {
+    new_time <-
+      create_resampling_index(max(df$time) - start_time,
+                              samplingrate) - (min(df$time) - start_time)
+    new_time[new_time > 0]
+  }
+
+  # preprocess and combine both data frames
+  resample_filter_pos(df1,
+                      joint_resampling_index(df1, start_time),
+                      span = 3) %>%
+    dplyr::inner_join(
+      resample_filter_pos(df2,
+                          joint_resampling_index(df2, start_time),
+                          span = 3),
+      by = "time",
+      suffix = c(".1", ".2")
+    ) %>%
+    # remove values outside time range
+    dplyr::filter(min_time <= time, time <= max_time)
+}
+
+
+#' Find the temporal latency between two movement trajectories
+#' 
+#' This function is useful to align for example tracker and mocap data when 
+#' they are not precisely synchronised. The two movement trajectories must be in the
+#' same coordinate system, but they can have a spatial translation, different 
+#' scaling, and different sampling rate. 
+#' 
+#' The function uses brute force by a simple grid-search at the specified sample 
+#' rate and over the specified interval.
+#'
+#' @param df1 First movement data frame, must have a column `time`
+#' @param df2 Second movement data frame, must have a column `time`
+#' @param col1 (String) vector of column names for xyz position of the first data frame
+#' @param col2 (String) vector of column names for xyz position of the second data frame
+#' @param scale1 Scaling of the first movement trajectory (e.g. 1 for m or 10e-3 for mm)
+#' @param scale2 Scaling of the second movement trajectory (e.g. 1 for m or 10e-3 for mm)
+#' @param sample_rate Sampling rate used for the comparison
+#' @param interval Two-element vector of the interval for the optimisation
+#'
+#' @returns A list with elements and `lag` (estimated lag in s) and `dist` 
+#' (residual spatial distance after mean translation subtracted from both data frames) 
+#' @export
+#'
+#' @examples
+find_movement_latencies <- function(df1, df2, 
+                                    col1 = c("pos_x", "pos_y", "pos_z"), 
+                                    col2 = c("pos_x", "pos_y", "pos_z"),
+                                    scale1 = 1,
+                                    scale2 = 1,
+                                    sample_rate = 10, 
+                                    interval = c(-1, 1), 
+                                    start_time1 = 0) {
+  
+  if (is.null(df1) | is.null(df2)) return(list(dist = NA_real_, lag = NA_real_))
+  
+  pp_df <- function(df, col_set, R, scaling, sample_rate) {
+    
+    # transform to within-trial time
+    df <- df %>%
+      mutate(time = time - min(time))
+    
+    # create resampling index
+    new_time <- create_resampling_index(max(df$time) - min(df$time), sample_rate = sample_rate)
+    
+    # resample
+    df %>%
+      # select desired columns
+      mutate(pos_x = scaling * .data[[col_set[1]]],
+             pos_y = scaling * .data[[col_set[2]]],
+             pos_z = scaling * .data[[col_set[3]]],
+             # translate to move around origin
+             pos_x = pos_x - mean(pos_x),
+             pos_y = pos_y - mean(pos_y),
+             pos_z = pos_z - mean(pos_z),
+      ) %>%
+      # filter, resample and filter
+      select(time, pos_x, pos_y, pos_z) %>%
+      dplyr::mutate(dplyr::across(
+        tidyselect::contains(c("pos")),
+        ~ stats::runmed(.x, k = 3, endrule = "constant"))) %>%
+      resample_filter_pos(new_time, span = 3) %>%
+      mutate(pos_x = new_pos_x,
+             pos_y = new_pos_y,
+             pos_z = new_pos_z) %>%
+      select(time, pos_x, pos_y, pos_z) 
+  }
+  
+  df1 <- pp_df(df1, col1, R1, scale1, sample_rate)
+  df2 <- pp_df(df2, col2, R2, scale2, sample_rate)
+  
+  min_time <- max(c(min(df1$time), min(df2$time)))
+  max_time <- min(c(max(df1$time), max(df2$time)))
+  
+  df1 <- df1 %>%
+    filter(time >= min_time, time <= max_time)
+  df2 <- df2 %>%
+    filter(time >= min_time, time <= max_time)
+  
+  # compute lagged mean distance. This is a brute-force approach, it could also
+  # be done more efficiently using component-wise fft to maximise cross-correlation,
+  # but the implementation is more error-prone and so not useful if this code is 
+  # run only once per study
+  interval_grid <- seq(from = interval[1], to = interval[2], by = 1/sample_rate)
+  
+  df_diff <- function(lag, df1, df2) {
+    df2 %>%
+      mutate(time = time + lag) %>%
+      inner_join(df1, by = "time") %>%
+      ungroup() %>%
+      mutate(diff_x = pos_x.x - pos_x.y,
+             diff_y = pos_y.x - pos_y.y,
+             diff_z = pos_z.x - pos_z.y,
+             dist   = sqrt(diff_x^2 + diff_y^2 + diff_z^2)) %>%
+      summarise(mean_dist = mean(dist)) %>%
+      pull(mean_dist)
+  }      
+  
+  lagged_diff <- map_dbl(interval_grid, df_diff, df1, df2)  
+  return(list(dist = min(lagged_diff), lag = interval_grid[which.min(lagged_diff)]))
+  
+}
+
+#' Correct movement timing
+#' 
+#' This function corrects the time column of a given movement tibble by a fixed 
+#' offset. This can be useful e.g. when joining different motion capture data 
+#' types recorded with different clocks.
+#'
+#' @param df A movement tibble with column `time`
+#' @param offset A scalar offset
+#'
+#' @returns The same movement tibble with corrected column `time`
+#' @export
+#'
+#' @examples
+correct_movement_timing <- function(df, offset) {
+  
+  if (is.null(df) || is.na(offset)) return(df)
+  
+  df %>% 
+    dplyr::mutate(time = time + offset)
+}

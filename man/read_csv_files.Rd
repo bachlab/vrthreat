@@ -17,6 +17,7 @@ Default are columns that end with `_location_0`}
 \description{
 Read CSV files associated with trials (e.g. Movement files) from paths stored
 in supplied columns. Expects absolute paths, use `update_file_pointers` to
-update them if necessary.
+update them if necessary. The function gives a warning if a file is not found
+or empty.
 Function uses `read_csv` to read files.
 }

@@ -49,12 +49,13 @@ Imports:
     methods,
     graphics,
     rgl,
-    RColorBrewer
+    RColorBrewer,
+    janitor
 Suggests: 
     testthat (>= 3.0.0),
     knitr,
     rmarkdown
 Config/testthat/edition: 3
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 Language: en-GB

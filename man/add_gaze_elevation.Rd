@@ -17,6 +17,5 @@ Original data frame with column `gaze_elevation` in degrees added.
 }
 \description{
 Takes a movement or eye tracker data frame, derives rotation matrices from orientation data,
-applies them to a reference direction vector, and calculates the row-by-row
-angular difference for the vector rotation.
+and adds the gaze elevation over the horizontal plane.
 }

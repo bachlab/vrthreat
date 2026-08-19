@@ -10,9 +10,11 @@ get_time_of_first_event(sequence_data, event_type)
 \item{sequence_data}{The sequence data list (i.e. `sequence0_T00X.json`
 parsed to a `list`).}
 
-\item{event_type}{A string containing the name of the event type. Should be
+\item{event_type}{A vector containing the names event types. Should be
 one of `"Wait"`, `"Event Call"`, `"Animate Behaviour"`, `"Move Towards`,
-`"Rotate Towards"` `"Head Look"`.}
+`"Rotate Towards"` `"Head Look"`. It can also be `"VerbaliseClip"`,
+a specific animation of type `"Animate Behaviour"`. The time of the first
+detected event is returned.}
 }
 \value{
 A numeric value of the time (in Unity time, seconds since start-up)

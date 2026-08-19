@@ -12,7 +12,7 @@ angle_diff_deg <- function(target_ang, ref_ang) {
 }
 
 
-#' Calculate 2D angle positive z-axis and a line from reference to target position in degrees
+#' Calculate 2D angle between positive z-axis and a line from reference to target position in degrees
 #'
 #' @param target_x Vector of target x positions
 #' @param target_z Vector of target y positions
@@ -31,6 +31,7 @@ calculate_2d_angle_deg <- function(target_x, target_z, ref_x = 0, ref_z = 0) {
 
   atan2(x, z) * 180 / pi
 }
+
 
 
 
@@ -242,7 +243,7 @@ rot2centralangle <- function(R1, R2, e) {
 #'
 proj_vec2vec <-
   function(x, y) {
-    as.vector(x %*% y) / norm(y, type = "2") * y
+    as.vector(x %*% y) / sum(y^2) * y
   }
 
 #' Project 3D-vector x into the plane spanned by y and z
@@ -264,6 +265,29 @@ proj_vec2plane <-
     # subtract the result from x
     x - n_x
   }
+
+
+#' Perpendicular distance of p3 from p1 along p1p2
+#'
+#' This can be used to determine when an object crosses a line
+#' perpendicular to p1p2, for example along a line from threat to safety
+#'
+#' @param p1 A vector of arbitrary dimension
+#' @param p2 Another vector with he same dimensions as p1
+#' @param p3 Yet another vector with the same dimensions
+#'
+#' @return A scalar
+#' @export
+#'
+#' @examples
+orthdist <- function(p1, p2, p3) {
+  # translate to origin
+  u <- p2 - p1
+  v <- p3 - p1
+  # project v onto u
+  w <- proj_vec2vec(v, u)
+  norm(w, type = "2")
+}
 
 #' Transform cartesian to spherical coordinates
 #'
@@ -294,5 +318,97 @@ cart2sph <- function(x) {
 #
 create_resampling_index <-
   function(max_t, sample_rate) {
-    (1:ceiling(sample_rate * max_t)) / sample_rate
+    (1:floor(sample_rate * max_t)) / sample_rate
   }
+
+
+#' Find minimum, avoiding warnings
+#'
+#'This is a wrapper for Rbase min() which avoids warnings when the supplied vector
+#'is empty or contains only NaNs
+#' @param vec A numerical vector
+#'
+#' @return The minimum (a number or NA)
+#'
+find_min <- function(vec) {
+    if (length(vec) == 0 || all(is.na(vec))) {
+      NA_real_
+    } else {
+      min(vec, na.rm = TRUE)
+    }
+  }
+
+#' Find index of minimum, avoiding warnings and errors
+#'
+#'This is a wrapper for Rbase which.min() which avoids warnings and errors
+#' when the supplied vector is empty or contains only NaNs
+#' @param vec A numerical vector
+#'
+#' @return The index of the minimum (a number or NA)
+find_argmin <- function(vec) {
+    if (length(vec) == 0 || all(is.na(vec))) {
+      NA_real_
+    } else {
+      which.min(vec)
+    }
+}
+
+#' Find maximum, avoiding warnings
+#'
+#'This is a wrapper for Rbase max() which avoids warnings when the supplied vector
+#'is empty or contains only NaNs
+#' @param vec A numerical vector
+#'
+#' @return The maximum (a number or NA)
+#'
+find_max <- function(vec) {
+  if (length(vec) == 0 || all(is.na(vec))) {
+    NA_real_
+  } else {
+    max(vec, na.rm = TRUE)
+  }
+}
+
+#' Find index of maximum, avoiding warnings and errors
+#'
+#'This is a wrapper for Rbase which.max() which avoids warnings and errors
+#' when the supplied vector is empty or contains only NaNs
+#' @param vec A numerical vector
+#'
+#' @return The index of the minimum (a number or NA)
+find_argmax <- function(vec) {
+  if (length(vec) == 0 || all(is.na(vec))) {
+    NA_real_
+  } else {
+    which.max(vec)
+  }
+}
+
+
+
+#' Calculate cummean with previous neighbour interpolation
+#'
+#' @param x A vector of numeric
+#'
+#' @return A vector of numeric
+#' @export
+#'
+#' @examples
+cummean_na <- function(x) {
+  valid <- !is.na(x)
+  x_cum <- rep(NA, times = length(x))
+  x_cum[valid] <- cumsum(x[valid]) / seq_along(x[valid])
+
+  # replace NA values by previous neighbour interpolation
+  invalid <- !valid
+
+  if (sum(invalid) > 0) {
+    invalid <- which(invalid)
+    for (k in 1:length(invalid)) {
+      if (invalid[k] > 1) {
+        x_cum[invalid[k]] <- x_cum[invalid[k] - 1]
+      }
+    }
+  }
+  return(x_cum)
+}

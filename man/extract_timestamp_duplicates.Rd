@@ -12,7 +12,7 @@ extract_timestamp_duplicates(
 )
 }
 \arguments{
-\item{df}{A summarised movement data frame (must contain a column `n`}
+\item{df}{A summarised movement data frame (must contain a column `n`)}
 
 \item{min_time}{Minimum time within the ref_movement (taken from `"time"`
 column) to search.}

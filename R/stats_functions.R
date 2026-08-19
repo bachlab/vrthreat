@@ -163,3 +163,31 @@ fit_mdl <- function(DV,
 
   return(results)
 }
+
+
+#' Safely fit a linear mixed-effects model using lme4::lmer
+#'
+#' This function attempts to fit a linear mixed-effects model with a given
+#' formula string using the `lme4::lmer` function. It includes error handling
+#' to gracefully return `NULL` if the model cannot be fit.
+#'
+#' @param formula_str A character string representing a model formula.
+#' @param data A data frame used for model fitting.
+#'
+#' @return A fitted `lmerMod` object if successful, otherwise `NULL`.
+#'
+#' @examples
+fit_lmer_model <- function(formula_str, data) {
+  formula <- as.formula(formula_str)
+  tryCatch(
+    {
+      # Fit model with lme4::lmer
+      model <- lme4::lmer(formula, data = data, REML = FALSE)
+      return(model)
+    },
+    error = function(e) {
+      warning(paste("Error fitting model:", formula_str, "-", e$message))
+      return(NULL)
+    }
+  )
+}

@@ -6,6 +6,7 @@
 \usage{
 guess_move_from_pos(
   pos,
+  ref_pos = NULL,
   ref_movement,
   max_dist = 0.2,
   min_time = min(ref_movement$time),
@@ -13,7 +14,9 @@ guess_move_from_pos(
 )
 }
 \arguments{
-\item{pos}{A list containing `x` `y` `z` of fixed position.}
+\item{pos}{A list containing `pos_x` `pos_y` `pos_z` of fixed position.}
+
+\item{ref_pos}{Optional: a second list of the same type}
 
 \item{ref_movement}{A data frame with reference movement, e.g. the head or
 the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`
@@ -27,5 +30,9 @@ A time stamp (Unity time) representing the time when the participant
   initially moved from the position.
 }
 \description{
-Guess the time at which the player initially moved away from a fixed position
+Guess the time at which the player initially moved away from a fixed position.
+This is evaluated within the horizontal plane only (2D).
+If ref_pos is given, then the function evaluates the orthogonal distance along
+the line pos-ref_pos
+(This function is a legacy wrapper for guess_move_at_pos())
 }
