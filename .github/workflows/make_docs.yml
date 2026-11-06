@@ -57,7 +57,7 @@ jobs:
 
           # Find stable X.Y.Z tags, newest first.
           mapfile -t TAGS < <(
-            git tag --list --sort=-version:refname |
+            git tag --list --sort=version:refname |
               grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' || true
           )
 
