@@ -12,7 +12,7 @@ create_file_paths(base_path, sub_paths)
 \item{sub_paths}{Character vector of subdirectory names.}
 }
 \value{
-Named list of full paths corresponding to each `sub_path`.
+Named list of full paths corresponding to each \code{sub_path}.
 }
 \description{
 Ensures subdirectories exist within a base path, creating them if necessary.

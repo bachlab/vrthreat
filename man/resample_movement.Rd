@@ -2,24 +2,25 @@
 % Please edit documentation in R/processing_movement_functions.R
 \name{resample_movement}
 \alias{resample_movement}
-\title{Resample a movement data frame to new time index.}
+\title{Resample a movement data frame.}
 \usage{
-resample_movement(df, new_time, from = 0, to = Inf)
+resample_movement(df, sample_rate = 10, sample_index = NULL)
 }
 \arguments{
 \item{df}{A movement data frame. Expected column: 'time'}
 
-\item{new_time}{New time index, with respect to "from"}
+\item{sample_rate}{The resampling rate in Hz. (Default 10Hz)}
 
-\item{from}{A numerical value of the starting time for resampling (default 0)}
-
-\item{to}{A numerical value of the end time for resampling (default inf, i.e. end of the data frame)}
+\item{sample_index}{time points to resample at. Overrides sample_rate if not NULL (default NULL)}
 }
 \value{
 A resampled movement data frame
 }
 \description{
-Takes a movement data frame, removes value outside range (from, to), and
-resamples to new index, where 0 in the new index corresponds to "from".
-For use with 'summarise'.
+Takes a movement data frame, resample numeric columns with linear interpolation and other columns with nearest label.
+For use with 'summarise'. For shifting the time column see \link{correct_movement_timing}
+}
+\examples{
+sample <- example_data$head_movement_data_0[[1]]
+resample_movement(sample)
 }

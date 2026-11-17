@@ -4,14 +4,16 @@
 \alias{add_speed}
 \title{Add movement speed to movement data frame}
 \usage{
-add_speed(df)
+add_speed(df, dimension = "3D")
 }
 \arguments{
-\item{df}{Movement data frame. Expects columns `rot_x`, `rot_y`, `rot_z`,
-`time`.}
+\item{df}{Movement data frame. Expects columns \code{rot_x}, \code{rot_y}, \code{rot_z},
+\code{time}.}
+
+\item{dimension}{"3D" (default) or "2D" (only horizontal speed).}
 }
 \value{
-Input data frame with column `speed` added.
+Input data frame with column \code{speed} added.
 }
 \description{
 Takes a movement data frame and calculates the row-by-row speed

@@ -1,0 +1,19 @@
+image: rocker/verse:latest
+
+pages:
+  cache:
+    key: r-packages
+    paths:
+      - /usr/local/lib/R/site-library
+  script:
+    - R -e "install.packages(c('pkgdown', 'remotes'), repos='https://cloud.r-project.org')"
+    - R -e "remotes::install_deps(dependencies = TRUE)"
+    - R -e "pkgdown::build_site()"
+  artifacts:
+    paths:
+      - docs
+  publish: docs
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      changes:
+        - man/**/*

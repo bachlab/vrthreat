@@ -12,9 +12,11 @@ read_quest_raw(rawquestpath, prefix_fn, participants_excluded, redcap_ppid_map)
 \item{prefix_fn}{Beginning of the questionnaire file name. Does not have to be exact as it
 will be matched with the files in the rawquestpath.
 3 csv files from Redcap exist:
-- Ad
-- Pr
-- Po}
+\itemize{
+\item Ad
+\item Pr
+\item Po
+}}
 
 \item{participants_excluded}{list of excluded participants id (ppid)}
 

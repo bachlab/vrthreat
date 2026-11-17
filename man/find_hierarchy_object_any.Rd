@@ -7,8 +7,8 @@
 find_hierarchy_object_any(x, any_names, include_children = FALSE)
 }
 \arguments{
-\item{x}{The object hierarchy to search. This is typically a `list` loaded
-from a scenario `.json` file.}
+\item{x}{The object hierarchy to search. This is typically a \code{list} loaded
+from a scenario \code{.json} file.}
 
 \item{any_names}{A vector of object names to search for.}
 
@@ -18,6 +18,6 @@ from a scenario `.json` file.}
 The matching object, or NULL if none found.
 }
 \description{
-Extended version of [find_hierarchy_object], returning the first object that
+Extended version of \link{find_hierarchy_object}, returning the first object that
 matches any of a range of names.
 }

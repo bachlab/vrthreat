@@ -57,29 +57,20 @@ get_fruit_time <-
 #' Guess/interpolate position at a point in time
 #'
 #' @param df a data frame
-#' @param ref_time a reference time
+#' @param ref_time a reference time (vector of time points to guess at)
 #'
 #' @return a list with elements `pos_x`, `pos_y`, `pos_z`
 #' @export
 #'
 #' @examples
 guess_pos_at_time <- function(df, ref_time) {
-  if (!is.data.frame(df)   ||
-      nrow(df) == 0 ||
-      is.na(ref_time) ||
-      ref_time < min(df$time) ||
-      ref_time > max(df$time))
-    return(NA_real_)
+  if (!validate_has_time(df, min_length = 2, .fun_name = "guess_pos_at_time")  ||
+      !validate_has_position(df, .fun_name = "guess_pos_at_time"))
+    return(NULL)
 
-  new_time <- sort(unique(c(df$time, ref_time)))
+  resampled_df <- resample_movement(df, sample_index = ref_time)
 
-  df %>%
-    resample_movement(new_time) %>%
-    pluck(1) %>%
-    dplyr::filter(dplyr::near(time, ref_time)) %>%
-    # in case two time stamps within machine precision
-    slice(1) %>%
-    with(list(pos_x = pos_x, pos_y = pos_y, pos_z = pos_z))
+  list(pos_x = resampled_df$pos_x, pos_y = resampled_df$pos_y, pos_z = resampled_df$pos_z)
 }
 
 #' Guess First Move From Position
@@ -125,12 +116,14 @@ guess_move_from_pos <-
   }
 
 
-#' Guess First Move From or To Position
+#' Guess First or Last Move From or To Position
 #'
 #' Guess the time at which the player initially moved away from, or to, a fixed position.
 #' This is evaluated within the horizontal plane only (2D).
 #' If ref_pos is given, then the function evaluates the orthogonal distance along
 #' the line pos-ref_pos
+#' 
+#' The time parameter specifies whether to use the first or last time the player moves into the threshhold. 
 #'
 #' @param pos A list containing `pos_x` `pos_y` `pos_z` of fixed position.
 #' @param ref_pos Optional: a second list of the same type
@@ -141,7 +134,8 @@ guess_move_from_pos <-
 #'   classified as away from the position
 #' @min_time Minimum time to look for move (default: start of data frame)
 #' @max_time Maximum time to look for move (default: end of data frame)
-#' @method "`from`" (default) or "`to`"
+#' @method `"from"` (default) or `"to"`
+#' @time `"first"` (default) or `"last"`
 #'
 #' @return A time stamp (Unity time) representing the time when the participant
 #'   initially moved from or to the position.
@@ -155,8 +149,9 @@ guess_move_at_pos <-
            max_dist = 0.2,
            min_time = min(ref_movement$time),
            max_time = max(ref_movement$time),
-           method = "from") {
-
+           method = "from",
+           time = "first") { 
+    
     ref_movement <-
       ref_movement %>%
       dplyr::filter(time > min_time & time < max_time)
@@ -194,23 +189,29 @@ guess_move_at_pos <-
       )
 
     # get "runs" of when we were near or not
-    runs <- with(temp_tbl, rle(near))
-    near_runs_idx <- with(runs, which(values == TRUE))
+    runs <- rle(temp_tbl$near)
+    near_runs_idx <- which(runs$values == TRUE)
 
     # if never inside, return NA
     if (length(near_runs_idx) == 0)
       return(NA_real_)
 
 
-    # we use the first run of when they were near the initial position
+    # we use the first/last run of when they were near the initial position
     # gives us the index of the when they first left the initial position
-    move_idx <-
-      with(runs, sum(lengths[seq(1, near_runs_idx[1])])) + 1
+    if (time == "last") {
+      run_idx <- length(near_runs_idx)
+    } else {
+      run_idx <- 1
+    }
+    
+      
+    move_idx <- sum(runs$lengths[seq(1, near_runs_idx[run_idx])]) + 1
     # if we never escaped
     if (move_idx > nrow(temp_tbl))
       return(NA_real_)
 
-    with(temp_tbl, time[move_idx])
+    temp_tbl$time[move_idx]
   }
 
 #' Guess start of escape
@@ -235,7 +236,7 @@ guess_move_at_pos <-
 #' @param min_speed minimum speed to determine start of escape
 #' @param min_time minimum time to start searching for escape
 #' @param max_time maximum time to search for escape
-#' @param indx currently disabled (only needed for debugging)
+#' @param time  "`first``" (default) or "`last`" escape 
 #'
 #' @return
 #' @export
@@ -248,13 +249,16 @@ guess_escape_begin_time <- function(df,
                                     min_speed = .1,
                                     min_time = min(df$time),
                                     max_time = max(df$time),
-                                    indx = 1) {
+                                    time = "first") {
 
-  # get first time player is away from fruit bush; return NA if this never happens
+  # get first/last time player is away from fruit bush; return NA if this never happens
   if (!is.data.frame(df) || is.na(min_time)) return(NA_real_)
-  max_time <- guess_move_from_pos(pos = ref_pos,
+  max_time <- guess_move_at_pos(pos = ref_pos,
                                   ref_movement = filter(df, time > min_time & time < max_time),
-                                  max_dist = esc_dist)
+                                  max_dist = esc_dist,
+                                  method = "from",
+                                  time = time
+                                )
   if (is.na(max_time)) return(NA_real_)
 
   # calculcate and filter velocity
@@ -404,6 +408,8 @@ guess_escape_abortion <-
     min_time <-
     ref_movement %>%
       dplyr::filter(distance == min_dist) %>%
+      # in case they come to this distance more than once, take the first instance
+      dplyr::slice(1) %>% 
       dplyr::pull(time)
 
     if (end_escape_time - min_time < 0.5) {
@@ -600,15 +606,11 @@ prepare_gaze_data <- function(df,
       ifelse(("gaze_direction_x" %in% colnames(df)), 100, 10)
   }
 
-  # resample over entire data frame to avoid edge effects
-  new_time <-
-    create_resampling_index(max(df$time) - min(df$time), samplingrate)
-
   if ("gaze_direction_x" %in% colnames(df)) {
     df <- df %>%
-      dplyr::select(!c("focus_object_raw", "focus_threat")) %>%
+      dplyr::select(!dplyr::any_of(c("focus_object_raw", "focus_threat"))) %>%
       dplyr::select(where(~ (!all(is.na(.x))))) %>%
-      resample_filter_pos(new_time, span = 3) %>%
+      resample_filter_pos(sample_rate = samplingrate, span = 3) %>%
       dplyr::select(!tidyselect::starts_with("gaze_")) %>%
       dplyr::rename(
         gaze_direction_x = new_gaze_direction_x,
@@ -620,7 +622,7 @@ prepare_gaze_data <- function(df,
   if ("rot_x" %in% colnames(df)) {
     df <-
       df %>%
-      resample_filter_pos(new_time, span = 3) %>%
+      resample_filter_pos(sample_rate = samplingrate, span = 3) %>%
       dplyr::select(!tidyselect::starts_with("rot_")) %>%
       dplyr::rename(rot_x = new_rot_x,
                     rot_y = new_rot_y,
@@ -638,27 +640,62 @@ prepare_gaze_data <- function(df,
 #' frame, rather than just on an interval of interest.
 #'
 #' @param df Movement data frame
-#' @param new_time Resampling index
+#' @param sample_rate Rate to resample data with (default 10)
+#' @param sample_index time points to resample at. Overrides sample_rate if not NULL (default NULL) 
 #' @param span Median filter span (default 3)
 #'
 #' @return Resampled data frame with filtered columns add as `new_pos_...` or `new_rot`
 #'
 
-resample_filter_pos <- function(df,
-                                new_time,
+resample_filter_pos <- function(df, 
+                                sample_rate = 10, 
+                                sample_index = NULL,
                                 span = 3) {
-
   df %>%
     # resample to constant rate over entire trial (to avoid edge filter effects)
-    resample_movement(new_time, from = min(df$time), to = max(df$time))  %>%
-    # extract from list
-    purrr::pluck(1) %>%
+    resample_movement(sample_rate, sample_index)  %>%
     # running median smoother
     dplyr::mutate(dplyr::across(
       tidyselect::contains(c("pos", "rot", "gaze", "pupil")),
-      ~ stats::runmed(.x, span, endrule = "constant"),
+      ~ stats::runmed(.x, span, endrule = "keep"),
       .names = "{paste0('new_', .col)}"
     ))
+}
+
+# 'Convert qualisys data from one body point to a standard movement tibble
+#'
+#' This function extracts one body point position data from a nested qualisys
+#' tibble, and converts it to a standalone movement tibble, which can be 
+#' processed with standard vrthreat functions. Use `join_data` to integrate
+#' qualisys data into a trial results tibble first.
+#'
+#' @param qualisys_df A qualisys data tibble in standard format. 
+#' @param body_point A motion capture body point (string) (will be expanded with "_X", "_Y", "_Z")
+#'
+#' @returns A movement tibble
+#' @export
+#'
+#' @examples
+convert_qualisys2vrthreat <- function(qualisys_df, body_point) {
+  
+  if (is.null(qualisys_df)) return(NULL)
+  
+  required_cols <- paste0(body_point, c("_X", "_Y", "_Z"))
+  missing_cols <- setdiff(required_cols, colnames(qualisys_df))
+  
+  if(length(missing_cols) > 0) {
+    stop(paste("Missing columns in mocap tibble:", paste(missing_cols, collapse = ", ")))
+  }
+  
+  # create movement tibble
+  qualisys_df %>%
+    dplyr::mutate(
+      time = time,
+      pos_x = .data[[required_cols[1]]],
+      pos_y = .data[[required_cols[2]]],
+      pos_z = .data[[required_cols[3]]],
+      .keep = "none"
+    )
 }
 
 #' Reorient movement data frame such that initial values match start position
@@ -682,30 +719,323 @@ resample_filter_pos <- function(df,
 reorient_movement_to_start <-
   function(df,
            .cols = c("rot_x", "rot_y", "rot_z", "pos_x", "pos_z"),
-           ref_pos = list(
-             "pos_x" = 0,
-             "pos_y" = 0,
-             "pos_z" = 0,
-             "rot_x" = 0,
-             "rot_y" = 0,
-             "rot_z" = 0
-           )) {
+           ref_pos = list(pos_x = 0, pos_y = 0, pos_z = 0, rot_x = 0, rot_y = 0, rot_z = 0)) {
+    if(any(c("rot_x", "rot_y", "rot_z") %in% .cols)){
+      .cols <- setdiff(.cols, c("rot_x", "rot_y", "rot_z"))
+      median_rot_offset_quaternion <- median_quaternion(eulunity2quaternion(df$rot_x[1:10], df$rot_y[1:10], df$rot_z[1:10]))
+      R_median <- quaternion2rot(median_rot_offset_quaternion)
+      R_start_pos <- eulunity2rot(ref_pos$rot_x, ref_pos$rot_y, ref_pos$rot_z)
+      R <- R_start_pos %*% solve(R_median) #invert median rot[1:10] then apply start_pos
+      df <- df %>%
+        dplyr::mutate(
+          rotated_cols_temp = reorient_eulunity(rot_x, rot_y, rot_z, R),
+          rot_x = rotated_cols_temp[,1],
+          rot_y = rotated_cols_temp[,2],
+          rot_z = rotated_cols_temp[,3],
+          rotated_cols_temp = NULL
+        )
+    }
+    
     df %>%
       dplyr::mutate(dplyr::across({{ .cols }},
-      ~ (.) - median((.)[1:10], na.rm = TRUE) + ref_pos[[cur_column()]]),
-      .keep = "unused") %>%
-      # and return a list
-      list()
+        ~ (.) - median((.)[1:10], na.rm = TRUE) + ref_pos[[cur_column()]]),
+        .keep = "unused"
+      )
   }
 
+#' Reorient movement data by affine transformation
+#' 
+#' Applies rotation given by `R` followed by a translation given by `offset` in
+#' rotated coordinates, to a position coordinate tibble.
+#'
+#' This function can also apply or undo the scenario position/rotation given by unity.
+#' In Unity, tracker information is stored in GLOBAL coordinates, not in LOCAL 
+#' scene coordinates. If scenarios were globally translated/rotated, the same physical tracker position
+#' would have different global coordinates across trials, or in other words, the tracker data are in  
+#' different coordinate systems across trials. For `"apply"`, the scenario transformation is applied last, after 
+#' the user-supplied affine transformation is applied. For `"undo"`, the scenario transformation is undone first,
+#' before the user-supplied affine transformation is applied
+#'  
+#' @param df A movement data frame or positional list with position coordinates in the form `_x`,
+#'  `_y`, `_z` (uppercase or lowercase)
+#' @param R A 3 x 3 rotation matrix (default: no rotation)
+#' @param offset A 3-element translation vector rotated coordinates (default:
+#' no translation), it can be a positional list too
+#' @param scenario_data A scenario object (optional; default: do not use scenario coordinates)
+#' @param scenario_direction Either `"apply"` or `"undo"`
+#' 
+#' @returns The same movement tibble with all position columns reoriented in a
+#' list, to be used by `mutate` across rows of a trial_results tibble
+#' @export
+#'
+#' @examples
+reorient_movement <- function(df,
+                     R = diag(3),
+                     offset = c(0, 0, 0),
+                     scenario_data = NULL,
+                     scenario_direction = NA) {
+  
+  # check if df has correct format
+  if((tibble::is_tibble(df)  && !validate_tibble_non_empty(df, .fun_name = "reorient_movement")) ||
+     (!tibble::is_tibble(df) && !validate_positional_list(df, .fun_name = "reorient_movement"))) {
+    return(df)
+  }
+
+  # Handle Positional Lists as offsets
+  if(is.list(offset)){
+    if(validate_positional_list(offset))
+      offset <- c(offset$pos_x, offset$pos_y, offset$pos_z)
+    else
+      offset <- c(0,0,0)
+  }
+  
+  # check if rotation matrix is valid
+  if(!(isTRUE((all.equal(dim(R),c(3,3)))) && is.numeric(R))){
+    warning("[reorient_movement]", "Rotation matrix non numeric or of incorrect dimensions", .call = FALSE)
+    return(df)
+  }
+
+  # Check if R is orthonormal and warn
+  if(!isTRUE(all.equal(diag(3), t(R) %*% R))){
+    warning("[reorient_movement]", "Rotation matrix is not orthonormal, rot_* columns are invalidated", call. = FALSE)
+  }
+
+
+  # Early Exit on near identity inputs 
+  tol = sqrt(.Machine$double.eps)
+  is_identity3 <- function(R, tol = sqrt(.Machine$double.eps)) {
+    all(
+      abs(R[1,1] - 1) <= tol,
+      abs(R[2,2] - 1) <= tol,
+      abs(R[3,3] - 1) <= tol,
+      abs(R[1,2])     <= tol,
+      abs(R[1,3])     <= tol,
+      abs(R[2,1])     <= tol,
+      abs(R[2,3])     <= tol,
+      abs(R[3,1])     <= tol,
+      abs(R[3,2])     <= tol
+    )
+  }
+  if(is.null(scenario_data) &&
+     is_identity3(R) &&
+     all(abs(offset) <= tol)){
+    return(df)
+  }
+
+  # Check if rot_* cols exist, saved for use later
+  rot_col_names <- names(df) %>%
+  stringr::str_subset("^rot_")
+  has_rot <- length(rot_col_names) == 3
+
+  # Extract Scenario Transformation Data
+  if (!is.null(scenario_data)) {
+    # extract data
+    pos_list <- find_scenario_position(scenario_data) 
+    R_unity <- eulunity2rot(pos_list[["rot_x"]], pos_list[["rot_y"]], pos_list[["rot_z"]])
+    offset_unity <- c(pos_list[["pos_x"]], pos_list[["pos_y"]], pos_list[["pos_z"]])
+  } else {
+    R_unity <- diag(3)
+    offset_unity <- c(0, 0, 0)
+  }
+  
+  # rename for clarity
+  R_user <- R
+  offset_user <- offset 
+
+  # The intended computation for "undo" is:
+  #     v0: input vector
+  #     v1: input vector with scenario rotation undone
+  #     v2: v1 with user-supplied rotation applied (output)
+  #     v1 = R_unity^-1 * (v0 - offset_unity)
+  #     v2 = R_user * v1 + offset_user
+  #        = R_user * (R_unity^-1 * (v0 - offset_unity)) + offset_user
+  #        = R_user * R_unity^-1 * v0 - R_user * R_unity * offset_unity + offset_user
+  #        = R * v0 - R * offset_unity + offset_user (with R := R_user * R_unity^-1)
+  
+  # The intended computation for "apply" is:
+  #     v0: input vector
+  #     v1: input vector with user-supplied rotation applied 
+  #     v2: v1 with scenario rotation applied (output)
+  #     v1 = R_user * v0 + offset_user 
+  #     v2 = R_unity * v1 + offset_unity
+  #        = R_unity * (R_user * v0 + offset_user) + offset_unity
+  #        = R_unity * R_user * v0 + R_unity * offset_user + offset_unity
+  #        = R * v0 + R_unity * offset_user + offset_unity (with R := R_unity * R_user)
+  
+  if (!is.null(scenario_data) && is.na(scenario_direction)) error()
+  
+  if (!is.null(scenario_data) && scenario_direction == "undo") {
+    R      <- R_user %*% solve(R_unity)
+    offset <- (-R %*% offset_unity) + offset_user
+  }
+  
+  if (!is.null(scenario_data) && scenario_direction == "apply") {
+    R      <- R_unity %*% R_user
+    offset <- (R_unity %*% offset_user) + offset_unity
+  }
+  
+ if (!tibble::is_tibble(df)) {
+    
+    new_pos <- R %*% c(df$pos_x, df$pos_y, df$pos_z) + offset
+    if(has_rot){
+      new_rot <- unname(rot2eulunity(R %*% eulunity2rot(df$rot_x, df$rot_y, df$rot_z)))
+      output <- list(pos_x = new_pos[1], pos_y = new_pos[2], pos_z = new_pos[3],
+                     rot_x = new_rot[1], rot_y = new_rot[2], rot_z = new_rot[3])
+    } else {
+      output <- list(pos_x = new_pos[1], pos_y = new_pos[2], pos_z = new_pos[3])
+    }
+
+
+    return(output)
+  }
+
+  # Identify xyz triplets that should be rotated (exclude rot_* columns)
+  xyz_cols <- df %>%
+    names() %>%
+    stringr::str_subset("_[xyzXYZ]$") %>%
+    stringr::str_subset("^rot_", negate=TRUE)
+
+  # Reorder xyz columns so each marker's x,y,z are ensured to be contiguous
+  # compute out markers and axis then sort using them in dplyr::arrange
+  xyz_cols_ordered <- xyz_cols %>%
+    tibble::tibble(col = .) %>%
+    dplyr::mutate(
+      marker = stringr::str_remove(col, "(?i)_[xyz]$"),
+      axis   = tolower(stringr::str_extract(col, "[xyz]$"))
+    ) %>%
+    dplyr::arrange(marker, axis) %>%
+    dplyr::pull(col)
+
+  # Keep other columns in original order, including rot_*
+  other_cols <- df %>%
+    dplyr::select(-dplyr::all_of(xyz_cols_ordered)) %>%
+    names()
+
+  # Extract numeric matrix for rotation
+  mat <- df %>%
+    dplyr::select(all_of(xyz_cols_ordered)) %>%
+    as.matrix()
+
+  n <- nrow(mat)
+  m <- ncol(mat) / 3  # number of markers
+
+  # Build block rotation matrix: each 3x3 block rotates a triplet
+  R_block <- do.call(rbind, replicate(m, t(R), simplify = FALSE)) # (3m × 3)
+
+  # Rotate all triplets at once
+  rotated_mat <- mat %*% R_block
+
+  # Apply shift
+  rotated_mat <- rotated_mat + matrix(rep(offset, n), nrow=n, byrow=TRUE)
+
+  # Convert to dataframe and set column names
+  rotated_df <- tibble::as_tibble(rotated_mat, .name_repair = "minimal")
+  names(rotated_df) <- xyz_cols_ordered
+
+  # Recombine rotated columns with all other columns (including rot_*)
+  df <- df %>%
+    dplyr::select(all_of(other_cols)) %>%
+    dplyr::bind_cols(rotated_df) %>%
+    # Final column order: original df order
+    dplyr::select(names(df))
+  
+  # Rotate rot columns
+  if (has_rot) {
+    rotated_rots <- reorient_eulunity(df$rot_x, df$rot_y, df$rot_z, R)
+
+    colnames(rotated_rots) <- rot_col_names
+
+    df <- df %>%
+      dplyr::select(-dplyr::all_of(rot_col_names)) %>%
+      dplyr::bind_cols(
+        tibble::as_tibble(rotated_rots, .name_repair = "minimal")
+      ) %>%
+      dplyr::select(dplyr::all_of(names(df)))
+  } 
+  
+  df
+}
+
+#' Reorient movement data from Qualisys to Unity
+#' 
+#' Reorient Qualisys data into the Unity left handed coordinate system and account for the
+#' offset between scene origin (in Unity) and Qualisys Motion Capture origin (in Unity coordinates).
+#' 
+#' Provide the offset as a vector in Unity coordinates (FROM Unity Scenario origin TO Qualisys origin).
+#' The function can also apply the rotation to local scenario coordinates provided in a scenario data object.
+#' This would ensure the returned data is in global coordinates.
+#' 
+#' It is recommended to include scenario data as all data stored via UXF from unity VR is in global coordinates.
+#'   
+#' @param df A movement data frame with position coordinates in the form `_X`,
+#'  `_Y`, `_Z` (uppercase or lowercase)
+#' @param offset A 3-element translation vector in Unity coordinates (from Unity Scenario Origin towards Qualisys Mocap origin)
+#' @param scenario_data A scenario object (optional default NULL)
+#'
+#' @returns The same movement tibble with all position columns reoriented in a
+#' list, to be used by `mutate` across rows of a trial_results tibble
+#' @export
+#'
+#' @examples
+reorient_qualisys2unity <- function(df, offset = c(0,0,0), scenario_data = NULL){
+  # See [Hutabarat July 2025] on Synchronization between HTC Vive and Qualisys Motion Capture
+  R <- solve(matrix(c( 0, 0, 1000, 
+                      -1000, 0, 0,
+                       0, 1000, 0),
+              ncol = 3,
+              byrow = TRUE))
+  
+  reorient_movement(df, 
+                    R = R, 
+                    offset = offset, 
+                    scenario_data = scenario_data, 
+                    scenario_direction = "apply")
+}
+
+#' Reorient movement data from Unity to Qualisys 
+#' 
+#' Reorient Unity data into the Qualisys right handed coordinate system and account for the
+#' offset between scene origin (in Unity) and Qualisys Motion Capture origin (in Unity coordinates).
+#' 
+#' Provide the offset as a vector in Unity coordinates (FROM Unity Scenario origin TO Qualisys origin).
+#' The function can also undo the rotation to local scenario coordinates provided in a scenario data object.
+#' This would convert the input data from global coordinates to scenario coordinates and thus avoid any sytemic artefacts in the returned data.
+#' 
+#' It is recommended to include scenario data as all data stored via UXF from unity VR is in global coordinates.
+#'   
+#' @param df A movement data frame with position coordinates in the form `_X`,
+#'  `_Y`, `_Z` (uppercase or lowercase)
+#' @param offset A 3-element translation vector in Unity coordinates (from Unity Scenario Origin towards Qualisys Mocap origin)
+#' @param scenario_data A scenario object (optional default NULL)
+#'
+#' @returns The same movement tibble with all position columns reoriented in a
+#' list, to be used by `mutate` across rows of a trial_results tibble
+#' @export
+#'
+#' @examples
+reorient_unity2qualisys <- function(df, offset = c(0,0,0), scenario_data = NULL){
+
+  # See [Hutabarat July 2025] on Synchronization between HTC Vive and Qualisys Motion Capture
+  R <- matrix(c( 0, 0, 1000, 
+                -1000, 0, 0,
+                0, 1000, 0),
+              ncol = 3,
+              byrow = TRUE)
+  
+  offset <- - R %*% offset
+
+  reorient_movement(df, 
+                    R = R, 
+                    offset = offset, 
+                    scenario_data = scenario_data, 
+                    scenario_direction = "undo")
+}
 
 #' Translate positions in movement data frame to reference position.
 #'
 #' This is a convenience function to make escape responses comparable between
-#' scenarios with different orientation (e.g. different fruit picking place). It
-#' does not (yet) allow reorienting the rotations.
-#' (NOTE: if required, such rotation re-orientation would require a function to
-#' convert a rotation matrix to Euler angles)
+#' scenarios with different orientation (e.g. different fruit picking place). 
+#' NOTE: this is a legacy function, superseded by `reorient_movement`
 #'
 #' @param df       A movement data frame.
 #' @param ref_pos  A named list of x,y,z reference position (default: 0, 0, 0)
@@ -726,54 +1056,66 @@ translate_movement_to_ref <-
       ) %>%
       # and return a list
       list()
-  }
+}
 
-#' Resample a movement data frame to new time index.
+#' Resample a movement data frame.
 #'
-#' Takes a movement data frame, removes value outside range (from, to), and
-#' resamples to new index, where 0 in the new index corresponds to "from".
-#' For use with 'summarise'.
+#' Takes a movement data frame, resample numeric columns with linear interpolation and other columns with nearest label.
+#' For use with 'summarise'. For shifting the time column see [correct_movement_timing]
 #'
-#' @param df       A movement data frame. Expected column: 'time'
-#' @param new_time New time index, with respect to "from"
-#' @param from     A numerical value of the starting time for resampling (default 0)
-#' @param to       A numerical value of the end time for resampling (default inf, i.e. end of the data frame)
-#'
-#'
+#' @param df          A movement data frame. Expected column: 'time'
+#' @param sample_rate  The resampling rate in Hz. (Default 10Hz)
+#' @param sample_index time points to resample at. Overrides sample_rate if not NULL (default NULL)
+#' 
 #' @return A resampled movement data frame
 #' @export
 #'
 #' @examples
-resample_movement <-
-  function(df,
-           new_time,
-           from = 0,
-           to = Inf) {
-    if (is.na(from) | is.na(to)) {
-      return(df %>%
-               dplyr::slice(0) %>%
-               dplyr::mutate(new_time = NA) %>%
-               list())
-    } else {
-      
-      old_time <- df$time
-      
-        df %>%
-          # ungroup to make summarise work later (in case any groups exist)
-          dplyr::ungroup() %>%
-          # linearly interpolate
-         dplyr::summarise(dplyr::across(.cols = everything(),
-                                       function(y)
-                                         {if (length(y) > 0) return(
-                                                suppressWarnings(stats::approx(old_time - from, y, new_time)$y)) else return(
-                                                rep(NA, times = length(new_time)))}))  %>%
-        # add new time
-        dplyr::mutate(new_time = new_time)  %>%
-        dplyr::filter(time >= from & time <= to) %>%
-        # and return a list
-        list()
-      }
+#' sample <- example_data$head_movement_data_0[[1]]
+#' resample_movement(sample)
+resample_movement <- function(df, sample_rate = 10, sample_index = NULL){
+  if(!validate_has_time(df, min_length = 2, .fun_name = "resample_movement") ||
+     !validate_numeric(sample_rate, .fun_name = "resample_movement")){
+    return(df)
   }
+  
+  if(is.null(sample_index)){
+    resample_time_interval_length <- max(df$time, na.rm = TRUE) - min(df$time, na.rm = TRUE)
+    new_timepoints <- create_resampling_index(resample_time_interval_length, sample_rate) + min(df$time)
+  } else 
+    new_timepoints <- sample_index
+    
+  df %>%
+  dplyr::ungroup() %>% #in case some groupings were present
+  dplyr::reframe(dplyr::across(dplyr::everything(), 
+          function(y){
+            # Nearest Label interpolation for non-numeric columns
+            if (!is.numeric(y)){
+              if (length(y) == 0)
+                return(rep(NA, times = length(new_timepoints)))
+                return(purrr::map_chr(new_timepoints, function(target) y[which.min(abs(time - target))]))
+              }
+              
+            # Handle rot columns separately (because of jump at 360 degrees)
+            col_name <- dplyr::cur_column()
+            if (any(startsWith(col_name, c("rot")))){ 
+              if (length(y) == 0) 
+                return(rep(NA, times = length(new_timepoints)))
+              
+              y_cos_resampled <- suppressWarnings(stats::approx(time, cos(y*pi/180), new_timepoints)$y)
+              y_sin_resampled <- suppressWarnings(stats::approx(time, sin(y*pi/180), new_timepoints)$y)
+
+              angle_deg <- (atan2(y_sin_resampled, y_cos_resampled)*180/pi) %% 360
+              return(angle_deg)
+            } 
+            
+            # Handle remaining (numeric) columns
+            if (length(y) == 0) 
+                return(rep(NA, times = length(new_timepoints)))
+            return(suppressWarnings(stats::approx(time, y, new_timepoints)$y))
+          }
+        ))
+}
 
 
 #' Resample a fruit collection frame to new time index.
@@ -852,28 +1194,41 @@ resample_eyetracker <-
       df %>%
         # ungroup to make summarise work later (in case any groups exist)
         dplyr::ungroup() %>%
-        # remove values outside time range
-        dplyr::filter((time > from) & (time < to)) %>%
-        # linearly interpolate
-        dplyr::summarise(dplyr::across(.cols = starts_with(
-          c(
-            "fixation",
-            "gaze",
-            "pupil",
-            "eyes",
-            "focus_point",
-            "focus_distance"
-          )
-        ),
-        function(y)
-        {
-          if (length(y) > 0)
-            return(suppressWarnings(stats::approx(time - from, y, new_time)$y))
-          else
-            return(rep(NA, times = length(new_time)))
-        }))  %>%
+        dplyr::reframe(dplyr::across(dplyr::everything(), 
+          function(y){
+            col_name <- dplyr::cur_column()
+
+            # Nearest Label interpolation
+            if (any(startsWith(col_name, c(
+                      "focus_object_raw",
+                      "focus_threat")))){
+              if (length(y) == 0)
+                return(rep(NA, times = length(new_time)))
+              return(purrr::map_chr(new_time, function(target) y[which.min(abs(time - target))]))
+            }
+
+            # Linear Interpolation
+            if (any(startsWith(col_name, c(
+                    "time",
+                    "fixation",
+                    "gaze",
+                    "pupil",
+                    "eyes",
+                    "focus_point",
+                    "focus_distance")))){ 
+              if (length(y) == 0)
+                return(rep(NA, times = length(new_time)))
+              return(suppressWarnings(stats::approx(time - from, y, new_time)$y))
+            } 
+            
+            # Drop remaining columns
+            return(NULL)
+          }
+        )) %>%
         # add new time
         dplyr::mutate(new_time = new_time)  %>%
+        # remove values outside time range
+        dplyr::filter((time >= from) & (time <= to)) %>%
         # and return a list
         list()
     }
@@ -1034,48 +1389,43 @@ check_valid_movement <- function(df,
 #'   column) to search.
 #' @param samplingrate resampling rate
 #'
-#' @return a combined data frame with original position columns suffixed by .1 and .2
+#' @return a combined data frame with resampled position/rotation columns 
+#'         and filtered/resampled position/rotation columns. Columns from the 
+#'         input data frames are suffixed by .1 and .2, respectively
 #' @export
 #'
 #' @examples
 combine_movement <- function(df1,
                              df2,
-                             min_time = min(c(df1$time, df2$time)),
-                             max_time = max(c(df1$time, df2$time)),
+                             min_time = max(c(min(df1$time), min(df2$time))),
+                             max_time = min(c(max(df1$time), max(df2$time))),
                              samplingrate = 10) {
   if (!is.data.frame(df1) ||
       !is.data.frame(df2) ||
       is.na(min_time) ||
       is.na(max_time) ||
       min_time > (max_time - 1 / samplingrate) ||
+      !validate_overlap(df1, df2, .fun_name = "combine_movement") ||
       nrow(df1) * nrow(df2) == 0)
     return(NULL)
 
+  
   # create joint resampling index
-  start_time <- max(df1$time[1], df2$time[1])
+  start_time <- min(df1$time[1], df2$time[1])
+  end_time <- max(dplyr::last(df1$time), dplyr::last(df2$time))
+  joint_resampling_index <- create_resampling_index(end_time - start_time, samplingrate) + start_time
 
-  joint_resampling_index <- function(df,
-                                     start_time,
-                                     sr = samplingrate) {
-    new_time <-
-      create_resampling_index(max(df$time) - start_time,
-                              samplingrate) - (min(df$time) - start_time)
-    new_time[new_time > 0]
-  }
+  if(length(joint_resampling_index) == 0)
+    return(NULL)
 
   # preprocess and combine both data frames
-  resample_filter_pos(df1,
-                      joint_resampling_index(df1, start_time),
-                      span = 3) %>%
-    dplyr::inner_join(
-      resample_filter_pos(df2,
-                          joint_resampling_index(df2, start_time),
-                          span = 3),
-      by = "time",
-      suffix = c(".1", ".2")
-    ) %>%
-    # remove values outside time range
-    dplyr::filter(min_time <= time, time <= max_time)
+  resample_filter_pos(df1,sample_index = joint_resampling_index) %>%
+  dplyr::inner_join(
+    resample_filter_pos(df2, sample_index = joint_resampling_index),
+    by = "time",
+    suffix = c(".1", ".2")
+  ) %>%
+  dplyr::filter(min_time <= time, time <= max_time)
 }
 
 
@@ -1139,7 +1489,7 @@ find_movement_latencies <- function(df1, df2,
       dplyr::mutate(dplyr::across(
         tidyselect::contains(c("pos")),
         ~ stats::runmed(.x, k = 3, endrule = "constant"))) %>%
-      resample_filter_pos(new_time, span = 3) %>%
+      resample_filter_pos(sample_index = new_time, span = 3) %>%
       mutate(pos_x = new_pos_x,
              pos_y = new_pos_y,
              pos_z = new_pos_z) %>%

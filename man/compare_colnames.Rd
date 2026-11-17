@@ -12,7 +12,7 @@ compare_colnames(df1, df2)
 \item{df2}{Second data frame.}
 }
 \value{
-A named list with elements: `common_columns`, `unique_to_df1`, and `unique_to_df2`.
+A named list with elements: \code{common_columns}, \code{unique_to_df1}, and \code{unique_to_df2}.
 }
 \description{
 Identifies common and unique column names between two datasets.

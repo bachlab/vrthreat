@@ -16,7 +16,7 @@ sound_detection_manual(
 
 \item{trials}{An integer selection of trials to play (corresponding to rows in output file), default: all rows}
 
-\item{sound_detection_file}{An output file name (existing files will be re-used; otherwise a new file is created), default: `sound_classification.csv`}
+\item{sound_detection_file}{An output file name (existing files will be re-used; otherwise a new file is created), default: \code{sound_classification.csv}}
 
 \item{sound_classification_file}{An output file name from an existing manual sound
 classification. Only used if sound_detection_file does not exist. In this case, all trials with already detected sounds will be set to 1 rather than NA.}

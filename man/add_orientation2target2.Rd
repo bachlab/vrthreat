@@ -14,8 +14,8 @@ add_orientation2target2(
 }
 \arguments{
 \item{ref_movement}{A data frame with reference movement, e.g. the head or
-the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`,
-`rot_x`, `rot_y`, `rot_z` columns.}
+the waist movement. Movement file should have \code{pos_x}, \code{pos_y}, \code{pos_z},
+\code{rot_x}, \code{rot_y}, \code{rot_z} columns.}
 
 \item{target_movement}{Movement of point of interest (e.g threat movement)}
 
@@ -24,8 +24,8 @@ the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`,
 \item{relative_to_first}{= FALSE}
 }
 \value{
-`ref_movement` with columns `time`, `target_diff` (raw angle relative
-to target) and `target_ratio` (cosine of angle) added
+\code{ref_movement} with columns \code{time}, \code{target_diff} (raw angle relative
+to target) and \code{target_ratio} (cosine of angle) added
 }
 \description{
 Returns the reference data frame with cos(angle) and angle over time added.

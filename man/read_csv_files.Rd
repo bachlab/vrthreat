@@ -9,15 +9,15 @@ read_csv_files(data, .cols = tidyselect::ends_with("_location_0"), ...)
 \arguments{
 \item{data}{A dataframe of trial results}
 
-\item{.cols}{A tidyselect specification of columns (e.g. `c(col1, col2)`).}
+\item{.cols}{A tidyselect specification of columns (e.g. \code{c(col1, col2)}).}
 
-\item{...}{Additional arguments passed to `read_csv`.
-Default are columns that end with `_location_0`}
+\item{...}{Additional arguments passed to \code{read_csv}.
+Default are columns that end with \verb{_location_0}}
 }
 \description{
 Read CSV files associated with trials (e.g. Movement files) from paths stored
-in supplied columns. Expects absolute paths, use `update_file_pointers` to
+in supplied columns. Expects absolute paths, use \code{update_file_pointers} to
 update them if necessary. The function gives a warning if a file is not found
 or empty.
-Function uses `read_csv` to read files.
+Function uses \code{read_csv} to read files.
 }

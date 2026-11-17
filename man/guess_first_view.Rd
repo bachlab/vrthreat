@@ -10,7 +10,7 @@ guess_first_view(eye_df, ref_pos, object_diameter = 0, foveal_angle = 1)
 \item{eye_df}{An eyetracker data frame}
 
 \item{ref_pos}{A data frame with reference position as list or movement
-tibble with columns `pos_x`, `pos_y`, `pos_z`}
+tibble with columns \code{pos_x}, \code{pos_y}, \code{pos_z}}
 
 \item{object_diameter}{Diameter of the object in m, default: 0.}
 

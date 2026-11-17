@@ -17,9 +17,9 @@ sound_classification_manual(
 
 \item{trials}{An integer selection of trials to play (corresponding to rows in output file), default: all rows}
 
-\item{sound_classification_file}{An output file name (existing files will be re-used; otherwise a new file is created), default: `sound_classification.csv`}
+\item{sound_classification_file}{An output file name (existing files will be re-used; otherwise a new file is created), default: \code{sound_classification.csv}}
 
-\item{sound_detection_file}{A file with previously detected sounds (expected columns: `sound_detected` with 0/1 entries, `sound_comment`), default: use all sounds}
+\item{sound_detection_file}{A file with previously detected sounds (expected columns: \code{sound_detected} with 0/1 entries, \code{sound_comment}), default: use all sounds}
 
 \item{from}{A string indicating whether to play sound from "start" or from "threat" (default)}
 }

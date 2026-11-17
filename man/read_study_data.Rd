@@ -18,18 +18,20 @@ top-level directory name in the VR output will be replaced by this path.}
 
 \item{metapath}{The path that contains the meta data. This must contain the
 following csv files, which are used in their order of appeareance:
-1. replacements.csv: joins interrupted participants. Must contain columns
-   ppid_old, ppid_new, session_num_new, last_trial_exclude
-2. participants_excluded.csv: participants to exclude. Must contain column
-   ppid
-3. trial_exclusions.csv: individual trials to exclude. Must contain columns
-   ppid, session_num, trial_num}
+\enumerate{
+\item replacements.csv: joins interrupted participants. Must contain columns
+ppid_old, ppid_new, session_num_new, last_trial_exclude
+\item participants_excluded.csv: participants to exclude. Must contain column
+ppid
+\item trial_exclusions.csv: individual trials to exclude. Must contain columns
+ppid, session_num, trial_num
+}}
 
-\item{remove_duplicates}{Whether or not to remove duplications in replaced 
-ppids, see `apply_replacements` for more information. Default: `TRUE`.}
+\item{remove_duplicates}{Whether or not to remove duplications in replaced
+ppids, see \code{apply_replacements} for more information. Default: \code{TRUE}.}
 
-\item{remove_tutorial_epochs}{whether or not to remove tutorial epochs from the data 
-set. Default: `TRUE`.}
+\item{remove_tutorial_epochs}{whether or not to remove tutorial epochs from the data
+set. Default: \code{TRUE}.}
 }
 \value{
 A data frame with all experiment data

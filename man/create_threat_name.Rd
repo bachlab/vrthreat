@@ -14,6 +14,6 @@ The data frame with the new column added.
 }
 \description{
 Creates "threat" column, parsed from episode name. Expects column called
-`episode`
+\code{episode}
 For finding Unity's internal threat name, see "find_unity_threat_name"
 }

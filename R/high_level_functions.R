@@ -248,3 +248,522 @@ process_trial_results <- function(trials_raw,
     tidyr::unnest(escape_aborted, names_sep = "_") %>%
     dplyr::group_by(!!!saved_groups)
 }
+
+#' Produce a heatmap of movement data filtered by actions and action labels
+#'
+#' `trials_raw` is a trials tibble containing nested tibbles for `movement_df_col` and `action_col`.
+#' It should also contain columns specified by each string in `marker_names`. The trials tibble can have groups as per [dplyr::group_by]
+#' and heatmaps will be generated for each group.
+#' 
+#' `action_col` contains tibbles each with a `time` column and a column specified by `inner_col` containing label data.
+#' This is used to compute a mask to filter for time points where the `inner_col` == `action_label`. 
+#' In case any of `inner_col`, `action_label` or `action_col` are missing, no mask is computed and filtering is skipped. 
+#' 
+#' Within a group all movement tibbles will be concatenated and filtered by the mask computed. Then a spatial heatmap is produced for each group.
+#' `marker_names` names columns where the datum in a row would be a positional list containing `pos_x` and `pos_z`. 
+#' These are used to mark points of interest in the heatmap (ex: `fruit_position`, `safe_position`). 
+#' Positional lists from all rows will be plotted as points. User can specify particular rows instead via the `marker_indices` parameter.
+#'
+#' You can specify the origin of each movement tibble by positional lists stored in a reference column in the trials tibble.
+#' The name of the reference column is passed as string via `origin_landmark`.
+#' 
+#' You can align the plot on the X-Z plane by aligning positional lists stored in a reference column to a preferred axis.
+#' The name of the reference column is passed as string via `axis_landmark`. The preferred axis is specified in `alignment_axis`
+#' Marker and movement data is rotated on the X-Z plane so that the axis landmark falls on the relevant axis ray (ex: `"+X"`)
+#' 
+#' Both `x_axis_lims` and `z_axis_lims` are on the scale of the data.
+#'    
+#' You can tweak the binning of the heatmap with `binning_count`
+#' 
+#' @param trials_raw A trials tibble
+#' @param movement_df_col The nested tibbles of movement data from which to form a heatmap (as string)
+#' @param action_col The nested tibbles of action data (with a time column in each nested tibble) (as string)
+#' @param inner_col The column within an action data df containing action labels (as string)
+#' @param action_label The action label with which to filter movement data before forming a heatmap (as string)
+#' @param marker_names Columns containing position data to place markers on the heatmap (as a vector of strings)
+#' @param marker_indices Indices that specify which rows of markers to be plotted as numeric vector (ex: `1:5`). (Default `NULL` - all rows)  
+#' @param origin_landmark Column containing positional lists that specify the origin of the plot. (as string)
+#' @param axis_landmark Column containing positional lists marker to align onto an axis.
+#' @param alignment_axis Specify which axis data will be aligned to, options (`"+Z"` default, `"-Z"`, `"+X"`, `"-X"`).
+#' @param x_axis_lims Specify x axis limits on plot as `c(lower_lim, upper_lim)` (numeric). (Default `NULL` - autodetect lims)
+#' @param z_axis_lims Specify y axis limits on plot as `c(lower_lim, upper_lim)`(numeric). (Default `NULL` - autodetect lims)
+#' @param color_bar Enable occupancy color bar (Default `TRUE`)
+#' @param points_of_interest Enable points of interest legend (Default `TRUE`)
+#' @param binning_count divides the smaller range on pos_x or pos_z axis into binning_count many bins. (Default `40`)
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+#' heatmaps <- plot_action_heatmaps(example_data, movement_df_col = "head_movement_data_0", binning_count = 7)
+#' heatmaps$plots[[1]]
+plot_action_heatmaps <- function(trials,
+                                 movement_df_col,
+                                 action_col=NULL,
+                                 inner_col=NULL,
+                                 action_label=NULL,
+                                 marker_names=character(0),
+                                 marker_indices=NULL,
+                                 origin_landmark=NULL,
+                                 axis_landmark=NULL,
+                                 alignment_axis="+Z",
+                                 x_axis_lims=NULL,
+                                 z_axis_lims=NULL,
+                                 color_bar = TRUE,
+                                 points_of_interest= TRUE,
+                                 binning_count = 40) {
+  if(!validate_numeric(binning_count, min = 0, .fun_name = "plot_action_heatmaps") ||
+     !validate_option(alignment_axis, "+Z", "-Z", "+X", "-X"))
+    return(NULL)
+  
+  # Convert snake_case column names to readable labels
+  format_name <- function(x) {tools::toTitleCase(stringr::str_replace_all(x, "_", " "))}
+  
+  extract_spatial_plot <- function(df, ...){
+    if(!validate_positional_list(df, min_length = 2, drop_y = TRUE, .fun_name = "extract_spatial_plot")){
+      msg <- "Invalid input: See [extract_spatial_plot] warnings in terminal"
+      failed_p <- ggplot2::ggplot() +
+      ggplot2::theme_void() +
+      ggplot2::annotate("text", x = 0.5, y = 0.5, label = msg, size = 5, colour = "black", size = 20, hjust = 0.5, vjust = 0.5)
+      
+      return(failed_p)
+    }
+
+    #setup, x and z lims and also bindwidth
+    args <- list(...)
+    range_z <- range(df$pos_z, na.rm = TRUE)
+    range_x <- range(df$pos_x, na.rm = TRUE)
+    if(diff(range_z) > diff(range_x)){
+      z_lims <- range_z
+      x_lims <- range_z - (mean(range_z) - mean(range_x))
+    } else {
+      z_lims <- range_x - (mean(range_x) - mean(range_z))
+      x_lims <- range_x
+    }
+
+    # X and Y axis are as per plot. X and Z axis are per motion data (in unity).
+    if(is.null(x_axis_lims)){
+      x_axis_lims <- x_lims
+    } else {
+      if(!is.numeric(x_axis_lims) || !length(x_axis_lims) == 2){
+        warning("[plot_action_heatmaps] User specified x-axis lims in wrong format", call. = FALSE)
+        x_axis_lims <- x_lims
+      } else {
+        # Sort
+        x_axis_lims < sort(x_axis_lims) 
+      }
+    }
+
+    if(is.null(z_axis_lims)){
+      z_axis_lims <- z_lims
+    } else {
+      if(!is.numeric(z_axis_lims) ||!length(z_axis_lims) == 2){
+        warning("[plot_action_heatmaps] User specified y-axis lims in wrong format", call. = FALSE)
+        z_axis_lims <- z_lims
+      } else {
+        # Sort
+        z_axis_lims < sort(z_axis_lims) 
+      }
+    }
+
+    binwidth <- min(abs(diff(z_axis_lims)), abs(diff(x_axis_lims))) / binning_count
+    if(color_bar){
+      legend_position <- c(0.88, 0.88)
+    } else {
+      legend_position <- "none"
+    }
+
+    #base plot construction
+    p <- ggplot2::ggplot(df, ggplot2::aes(pos_x, pos_z)) +
+    ggplot2::geom_bin2d(binwidth = c(binwidth,binwidth)) +
+    ggplot2::scale_fill_viridis_c(
+      option = "inferno",
+      trans = scales::transform_log(200), # keeps low occupancy visible by taking log of occupancies
+      na.value = "#0B0B0B"
+    ) + 
+    ggplot2::coord_fixed(xlim = x_axis_lims, ylim = z_axis_lims) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(
+      plot.background  = ggplot2::element_rect(fill = "#0B0B0B", color = NA),
+      panel.background = ggplot2::element_rect(fill = "#0B0B0B", color = NA),
+      text = ggplot2::element_text(color = "white"),
+      axis.text = ggplot2::element_text(color = "white", size = 12.5),
+      axis.title = ggplot2::element_text(color = "white", face = "bold", size = 13),
+      axis.ticks = ggplot2::element_line(color = "white"),
+      legend.background = ggplot2::element_rect(fill = "#0B0B0B", color = NA),
+      legend.key = ggplot2::element_rect(fill = "#0B0B0B",color = NA),
+      legend.text = ggplot2::element_text(color = "white", size = 11),
+      legend.title = ggplot2::element_text(color = "white", face = "bold"),
+      legend.position =  legend_position
+    ) +
+    ggplot2::labs(x = "Left - Right (m)", y = "Back - Front (m)", fill = "Occupancy")
+      
+    # Adds points of interest
+    p <- p + ggnewscale::new_scale_fill() + 
+      ggplot2::scale_fill_brewer(palette = "Accent")
+    for(i in seq_along(args)){
+      marker_list <- args[[i]]
+      
+      if(is.null(marker_indices)){
+        local_indices <- 1:length(marker_list)
+      } else {
+        local_indices <- marker_indices[marker_indices >= 1 & marker_indices <= length(marker_list)]
+      }
+      
+      for(j in local_indices){
+        val <- marker_list[[j]]
+        p <- p +
+          # Outlines
+        ggplot2::geom_point(
+          data = data.frame(
+            pos_x = val$pos_x,
+            pos_z = val$pos_z
+          ),
+          ggplot2::aes(
+            x = pos_x,
+            y = pos_z,
+          ),
+          size = 4,
+          shape = 21,
+          color = "#ffdcecff",
+          alpha = 0.3,
+          stroke = 1
+        ) + #then fill
+        ggplot2::geom_point(
+          data = data.frame(
+            pos_x = val$pos_x,
+            pos_z = val$pos_z,
+            label = format_name(marker_names[[i]])
+          ),
+          ggplot2::aes(
+            x = pos_x,
+            y = pos_z,
+            fill = label
+          ),
+          size = 4,
+          shape = 21,
+          alpha = 1,
+          stroke = 0.2
+        )
+      }
+    }
+
+    p <- p +
+      ggplot2::labs(fill = "Points of Interest") +
+      ggplot2::guides(
+        fill = if (points_of_interest) "legend" else "none"
+      )
+
+    # Add origin lines
+    p <- p +
+    ggplot2::geom_hline(
+      yintercept = 0,
+      color = "#ffffffff",
+      linetype = "longdash",
+      linewidth = 0.1,
+      alpha = 0.9
+    ) +
+    ggplot2::geom_vline(
+      xintercept = 0,
+      color = "#ffffffff",
+      linetype = "longdash",
+      linewidth = 0.1,
+      alpha = 0.9
+    )
+
+      
+    #return plot object for nesting inside tibble
+    p
+  }
+
+  #store grouping data
+  group_names <- dplyr::group_vars(trials) 
+  
+  #Filter bad rows
+  is.invalid <- function(x) {
+    if (is.null(x) || length(x) == 0) return(TRUE)
+    if (anyNA(x)) return(TRUE)
+    if (is.numeric(x) && any(is.nan(x))) return(TRUE)
+    FALSE
+  }
+
+  for(col in c(movement_df_col, marker_names, origin_landmark, axis_landmark)){
+    if(any(purrr::map_vec(trials[[col]], is.invalid)))
+      warning(stringr::str_glue("[plot_action_heatmaps] Invalid data in {col} filterd"), call. = FALSE)
+    
+    trials <- trials %>% dplyr::rowwise() %>% 
+      dplyr::filter(!is.invalid(.data[[col]])) %>%
+      dplyr::ungroup()
+  }
+
+  #Filter movement data as per action labels
+  if(!is.null(action_col) & !is.null(action_label) & !is.null(inner_col)){
+    filter_expression <- stringr::str_glue(inner_col, " == \"", action_label, "\"")
+    trials <- trials %>% dplyr::rowwise() %>%
+      dplyr::mutate(action_filter_mask = list(extract_timemask(!!rlang::parse_expr(action_col), !!rlang::parse_expr(filter_expression)))) %>%
+      dplyr::mutate("{movement_df_col}" := list(extract_with_timemask(identity, action_filter_mask, method = "table")(.data[[movement_df_col]])))
+  }
+
+  ## Reorient Data Setup
+  # defaults
+  plot_offset <- c(0,0,0)
+  plot_R <- diag(3)
+  # useful constructs
+  axis_alignment_required <- is.character(axis_landmark) && axis_landmark %in% names(trials)
+  origin_alignment_required <- is.character(origin_landmark) && origin_landmark %in% names(trials)
+  normalize <- function(x){x/sum(sqrt(x^2))}
+  axis_vec <- list(`+X` = c(1, 0, 0),
+                   `-X` = c(-1, 0, 0),
+                   `+Z` = c(0, 0, 1),
+                   `-Z` = c(0, 0, -1))[[alignment_axis]]
+
+  #Compute needed transformation data as per cases
+  if(axis_alignment_required  && !origin_alignment_required){
+    trials <- trials %>% dplyr::rowwise() %>%
+      dplyr::mutate(axis_ref_point = list(normalize(c(.data[[axis_landmark]]$pos_x, 0, .data[[axis_landmark]]$pos_z)))) %>%
+      dplyr::mutate(axis_rot_matrix = list(vec2rot(axis_ref_point, axis_vec)))
+    # Pass columns containing transformation data
+    plot_R <- "axis_rot_matrix"
+  }
+
+  if(!axis_alignment_required && origin_alignment_required){
+    trials <- trials %>% dplyr::rowwise() %>%
+      dplyr::mutate(plot_origin_offset = list(lapply(.data[[origin_landmark]], `-`)))
+    plot_offset <- "plot_origin_offset"
+  }
+
+  if(axis_alignment_required && origin_alignment_required){
+    trials <- trials %>% dplyr::rowwise() %>%
+        dplyr::mutate(axis_ref_point = list(normalize(c(.data[[axis_landmark]]$pos_x - .data[[origin_landmark]]$pos_x,
+                                                         0,
+                                                        .data[[axis_landmark]]$pos_z - .data[[origin_landmark]]$pos_z)))) %>%
+        dplyr::mutate(axis_rot_matrix = list(vec2rot(axis_ref_point, axis_vec))) %>%
+        dplyr::mutate(plot_origin_offset = list(reorient_movement(lapply(.data[[origin_landmark]], `-`), axis_rot_matrix)))
+    # Pass columns containing transformation data
+    plot_offset <- "plot_origin_offset"
+    plot_R <- "axis_rot_matrix"
+  }
+
+  # Apply Reorientation / Transformations
+  if(is.character(axis_landmark) || is.character(origin_landmark)){
+    trials <- reorient_movement_cols(trials, .cols = c(movement_df_col, marker_names),
+                                     R = plot_R, offset = plot_offset) %>%
+      dplyr::select(-dplyr::any_of(c("axis_ref_point", "axis_rot_matrix", "plot_origin_offset")))
+  }
+
+  # Add grouping data back  
+  trials <- dplyr::grouped_df(trials, group_names)   
+   
+  trials %>%
+    # Combine groups with summarise, position marker columns store first entry
+    dplyr::summarise(
+      movement_df = list(dplyr::bind_rows(.data[[movement_df_col]])),
+      dplyr::across(dplyr::all_of(marker_names), ~ list(.x)),
+      .groups = "drop") %>%
+    # Create plots 
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      plots = list(extract_spatial_plot(movement_df, !!!rlang::syms(marker_names))))
+}
+
+#' Prepare trial results tibble for public release
+#'
+#' `trials_results` is a trials tibble containing data that needs to be 
+#' anonymized and cleaned before public release. 
+#' 
+#' This function removes movement data columns, questionnaire columns, data file location columns 
+#' `force_retain` takes precedence over `force_remove`. 
+#' `ppid`, `screenrec_filename`, `lsltriggerrecorder_filepath`, `res_path` and
+#' `"camrec_filename"` are removed always (regardless of `force_retain`)
+#' 
+#' Movement data columns are identified by two criteria:
+#' - Column names containing "movement_data"
+#' - Columns with nested tibbles containing "pos_" columns
+#' - Botheyes tracking data columns
+#'
+#' Questionnaire item columns are identified by the pattern `<questionnaire_name>_<number>`
+#' and/or contains `"redcap"` in the name.
+#' (e.g., `mccs_1`, `mccs_2`, `sticsa_s_1`). Aggregated questionnaire scores are retained.
+#'
+#' Location columns are detected by presence of `"location_0"`, `"filename"` or `"filepath"`
+#' 
+#' Expression columns are defined as those columns with names that are a function call of some kind
+#' example `if_else(is.na(previous_trial), 0, previous_trial)`, calls to `is.na`, `case_when` etc.
+#' Detection checks for a valid function name followed by an openning parenthesis `(`.
+#' 
+#' @param trials_results A trials tibble or data frame, possibly grouped.
+#' @param force_retain A character vector of column names to exclude from removal,
+#'   overriding automatic detection. Useful for retaining specific questionnaire items
+#'   or other sensitive columns. (Default: `NULL`)
+#' @param force_remove A character vector of column names to remove in addition to
+#'   automatically detected columns. (Default: `NULL`)
+#' @param output_report Path to a text file where the preparation report should be
+#'   written. If `NULL`, the report is printed to console. (Default: `NULL`)
+#' @param drop_file_cols Flag indicating whether file columns should be dropped (Default: `TRUE`)
+#' @param drop_expression_cols Flag indicating whether expression columns should be dropped (Default: `TRUE`)
+#' @param shuffle_seed An integer seed for reproducible shuffling of ppids and row order.
+#'   If `NULL`, shuffling is random. (Default: `NULL`)
+#'
+#' @returns
+#' A tibble with the same row count as `trials_raw`, fewer columns, and with the `ppid`
+#' column replaced by `.ppid_shuffled`. The tibble has two additional attributes:
+#' - `public_release_report`: A list containing details of all removals and changes
+#' - `report_text`: A formatted character string of the report suitable for printing
+#'
+#' @export
+#'
+#' @examples
+#' # Basic usage: prepare data for release
+#' data_public <- prepare_for_public_release(example_trials)
+#'
+#' # With report saved to file
+#' data_public <- prepare_for_public_release(
+#'   example_trials,
+#'   output_report = "release_report.txt"
+#' )
+#'
+#' # Force-retain specific questionnaire items while removing others
+#' data_public <- prepare_for_public_release(
+#'   example_trials,
+#'   force_retain = c("mccs_1", "mccs_2"),
+#'   shuffle_seed = 42
+#' )
+#'
+#' 
+prepare_for_public_release <- function(
+    trials_results,
+    force_retain = NULL,
+    force_remove = NULL,
+    output_report = NULL,
+    drop_file_cols = TRUE,
+    drop_expression_cols = TRUE,
+    shuffle_seed = NULL) {
+  if(!validate_tibble_non_empty(trials_results, .fun_name = "prepare_for_public_release")){
+      return(trials_results)
+  }
+
+  # Set seed if provided
+  if (!is.null(shuffle_seed) && validate_numeric(shuffle_seed, .fun_name = "prepare_for_public_release"))
+    set.seed(shuffle_seed)
+  
+  # Clear grouping
+  trials_results <- dplyr::ungroup(trials_results)
+  
+  movement_cols <- names(trials_results)[
+    stringr::str_detect(names(trials_results), "movement_data|botheyes_eye_tracking_data")
+  ]
+
+  nested_pos_cols <- names(trials_results)[
+    purrr::map_lgl(trials_results, function(x) {
+      is.list(x) &&
+        any(purrr::map_lgl(x, function(y) {
+          is.data.frame(y) &&
+            any(stringr::str_detect(names(y), "^pos_"))
+        }))
+    })
+  ]
+
+  # "..._location_0", "filename" and "filepath" type columns
+  file_cols <- names(trials_results)[
+      stringr::str_detect(names(trials_results), "location_0|filepath|filename")
+  ]
+
+  # Columns with function calls for names
+  expression_cols <- names(trials_results)[
+    stringr::str_detect(
+      names(trials_results),
+      "\\b[a-zA-Z][a-zA-Z0-9_.]*\\s*\\("
+    )
+  ]
+
+  # Columns of form ".._data_0" - in order to clean up questionnaire cols via setdiff below
+  # Not actually removed from trials_raw
+  data_cols <- names(trials_results)[
+    stringr::str_detect(names(trials_results), "data_0")
+  ]
+
+  # Individual questionnaire items, e.g. mccs_1, mccs_2, mccs_3
+  questionnaire_cols <- names(trials_results)[
+    stringr::str_detect(names(trials_results), "(^[a-z_]+_\\d+$)|redcap")
+  ]
+
+  questionnaire_cols <- setdiff(questionnaire_cols, file_cols)
+  questionnaire_cols <- setdiff(questionnaire_cols, expression_cols)
+  questionnaire_cols <- setdiff(questionnaire_cols, data_cols)
+
+
+  # Prevent deletion of file_cols as per user option
+  if(!drop_file_cols){
+    file_cols <- character(0)
+  }
+
+  # Prevent deletion of expression_cols as per user option 
+  if(!drop_expression_cols){
+    expression_cols <- character(0)
+  }
+  
+  # Combine automatically detected columns
+  auto_remove <- unique(c(
+    movement_cols,
+    nested_pos_cols,
+    questionnaire_cols,
+    file_cols,
+    expression_cols
+  ))
+
+  # Add explicitly requested removals
+  auto_remove <- union(auto_remove, force_remove)
+
+  # Explicitly retained columns take precedence
+  cols_to_remove <- setdiff(auto_remove, force_retain)
+
+  # Remove ppid no matter what- (replace with ppid_shuffled)
+  # Also remove screenrec_filename, lsltriggerrecorder_filepath and res_path
+  # Since these leak ppid
+  cols_to_remove <- union(
+    cols_to_remove,
+    c("ppid",
+      "screenrec_filename",
+      "camrec_filename",
+      "lsltriggerrecorder_filepath",
+      "res_path"
+    )
+  )
+
+  # Generate report before modification
+  removed_cols <- cols_to_remove
+  retained_cols <- setdiff(names(trials_results), cols_to_remove)
+  
+  report <- list(
+    timestamp = Sys.time(),
+    input_rows = nrow(trials_results),
+    input_cols = ncol(trials_results),
+    output_cols = ncol(trials_results) - length(cols_to_remove),
+    removed_columns = removed_cols,
+    retained_columns = retained_cols,
+    force_retained = force_retain,
+    force_removed = force_remove
+  )
+  
+  #process the tibble
+  result <- trials_results %>%
+    dplyr::mutate(
+      ppid_shuffled = sample(unique(ppid))[match(ppid, unique(ppid))]
+    ) %>%
+    dplyr::relocate(ppid_shuffled, .before = 2) %>%
+    dplyr::select(-dplyr::any_of(cols_to_remove), -ppid) %>%
+    dplyr::arrange(ppid_shuffled) %>%
+    dplyr::rename(ppid = ppid_shuffled)
+  
+  # Format report
+  report_text <- format_report(report)
+  
+  # Write or print report
+  if (!is.null(output_report)) {
+    writeLines(report_text, con = output_report)
+  } else {
+    cat(report_text)
+  }
+  
+  result
+}

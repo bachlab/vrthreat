@@ -7,7 +7,7 @@
 get_first_fruit_collection(df)
 }
 \arguments{
-\item{df}{Fruit collection data frame, expected columns: `time`, `event`}
+\item{df}{Fruit collection data frame, expected columns: \code{time}, \code{event}}
 }
 \value{
 a time stamp

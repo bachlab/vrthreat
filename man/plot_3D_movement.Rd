@@ -9,11 +9,11 @@ plot_3D_movement(df, xlim = c(-2, 2), ylim = c(-0.2, 2.5), zlim = c(-3, 3))
 \arguments{
 \item{df}{a movement data frame}
 
-\item{xlim}{The left-right limit of the plot (default: ```c(-2, 2)```)}
+\item{xlim}{The left-right limit of the plot (default: \code{c(-2, 2)})}
 
-\item{ylim}{The top-bottom limit of the plot (default: ```c(-0.2, 2.5)```)}
+\item{ylim}{The top-bottom limit of the plot (default: \code{c(-0.2, 2.5)})}
 
-\item{zlim}{The forward-backward limit of the plot (default: ```c(-3, 3)```)}
+\item{zlim}{The forward-backward limit of the plot (default: \code{c(-3, 3)})}
 }
 \description{
 Any movement data frame (tracker, threat) is plotted in an interactive 3D plot.

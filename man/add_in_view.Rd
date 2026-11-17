@@ -16,7 +16,7 @@ add_in_view(
 \item{eye_df}{An eyetracker data frame}
 
 \item{ref_pos}{A data frame with reference position as list or movement
-tibble with columns `pos_x`, `pos_y`, `pos_z`}
+tibble with columns \code{pos_x}, \code{pos_y}, \code{pos_z}}
 
 \item{object_diameter}{Diameter of the object in m, default: 0.}
 
@@ -25,8 +25,8 @@ tibble with columns `pos_x`, `pos_y`, `pos_z`}
 \item{foveal_field}{The foveal field in degrees, default: 1°.}
 }
 \value{
-`ref_movement` with new columns `in_view`
+\code{ref_movement} with new columns \code{in_view}
 }
 \description{
-Returns the same data frame with added column `in_view`.
+Returns the same data frame with added column \code{in_view}.
 }

@@ -3,7 +3,7 @@
 \name{extract_orientation}
 \alias{extract_orientation}
 \title{Extract direction of the orientation of a reference object relative to a
-stationary target (in 2D, XZ) between a `min_time` and `max_time`.}
+stationary target (in 2D, XZ) between a \code{min_time} and \code{max_time}.}
 \usage{
 extract_orientation(
   ref_movement,
@@ -16,10 +16,10 @@ extract_orientation(
 }
 \arguments{
 \item{ref_movement}{A reference movement data frame, e.g. the head or
-the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`,
-`rot_x`, `rot_y`, `rot_z` columns.}
+the waist movement. Movement file should have \code{pos_x}, \code{pos_y}, \code{pos_z},
+\code{rot_x}, \code{rot_y}, \code{rot_z} columns.}
 
-\item{target_position}{A list with `pos_x`, `pos_y`, and `pos_z` coordinates of the target}
+\item{target_position}{A list with \code{pos_x}, \code{pos_y}, and \code{pos_z} coordinates of the target}
 
 \item{min_time}{minimum time in s (default trial start)}
 
@@ -28,14 +28,20 @@ the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`,
 \item{convert2cos}{Whether to use the cosine of the angle (TRUE, default) or
 the absolute angle (FALSE)}
 
-\item{...}{any other arguments to be passed on to `add_orientation2target`}
+\item{...}{any other arguments to be passed on to \code{\link[=add_orientation2target]{add_orientation2target()}}}
 }
 \value{
-An average of the `target_ratio` or absolute target difference over
- time between `min_time` and `max_time`. Uses trapezium rule for average over
- variable sample rate.
+An average of the \code{target_ratio} or absolute target difference over
+time between \code{min_time} and \code{max_time}. Uses trapezium rule for average over
+variable sample rate.
 }
 \description{
-You can supply timestamps to `min_time` and `max_time` (e.g timestamp of
+You can supply timestamps to \code{min_time} and \code{max_time} (e.g timestamp of
 begin escape) to average over only a period.
+}
+\examples{
+sample_movement <- example_data$head_movement_data_0[[1]]
+pos_list <- list(pos_x = 2, pos_y=1, pos_z=2)
+
+extract_orientation(sample_movement, pos_list)
 }

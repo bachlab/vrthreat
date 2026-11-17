@@ -3,36 +3,44 @@
 \name{extract_movement_dist}
 \alias{extract_movement_dist}
 \title{Extract (min, max or mean) 2D distance between movement trajectory and
- reference position.}
+reference position.}
 \usage{
 extract_movement_dist(
   ref_movement,
   ref_position,
-  min_time = min(ref_movement$time),
-  max_time = max(ref_movement$time),
-  method = "min"
+  min_time = min(ref_movement$time, na.rm = TRUE),
+  max_time = max(ref_movement$time, na.rm = TRUE),
+  method = "min",
+  threshold = 0
 )
 }
 \arguments{
 \item{ref_movement}{A dataframe of movement (must contain standard trajectory
-columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).}
+columns, i.e. \code{"time"}, \code{"pos_x"}, \code{"pos_y"}, \code{"pos_z"}).}
 
 \item{ref_position}{Reference position, stored as a list
-containing `"pos_x"`, `"pos_z"` items.}
+containing \code{"pos_x"}, \code{"pos_z"} items.}
 
-\item{min_time}{Minimum time within the ref_movement (taken from `"time"`
+\item{min_time}{Minimum time within the ref_movement (taken from \code{"time"}
 column) to search.}
 
-\item{max_time}{Maximum time within the ref_movement (taken from `"time"`
+\item{max_time}{Maximum time within the ref_movement (taken from \code{"time"}
 column) to search.}
 
-\item{method}{whether to extract min (default), max or mean}
+\item{method}{whether to extract "min" (default), "max", "mean", "mse", or proportion of
+time the distance is "less" or "greater" than a threshold}
+
+\item{threshold}{numerical threshold if method is "less" or "greater", ignored otherwise}
 }
 \value{
 A numeric value of the minimum 2D distance of the ref_movement
-  trajectory to the supplied safe position.
+trajectory to the supplied safe position.
 }
 \description{
 #' Searches a movement trajectory dataframe and summarises distance
 (ignoring y) to a reference position as average or minimum.
+}
+\details{
+The "mse" option (Mean Squared Error) calculates the time weighted average of squared disance (Squared error) from
+the reference position.
 }

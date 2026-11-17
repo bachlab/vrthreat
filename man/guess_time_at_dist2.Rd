@@ -16,15 +16,15 @@ guess_time_at_dist2(
 }
 \arguments{
 \item{df1}{A dataframe of movement (must contain standard trajectory
-columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).}
+columns, i.e. \code{"time"}, \code{"pos_x"}, \code{"pos_y"}, \code{"pos_z"}).}
 
 \item{df2}{A dataframe of movement (must contain standard trajectory
-columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).}
+columns, i.e. \code{"time"}, \code{"pos_x"}, \code{"pos_y"}, \code{"pos_z"}).}
 
-\item{min_time}{Minimum time within the resampled movement (taken from `"time"`
+\item{min_time}{Minimum time within the resampled movement (taken from \code{"time"}
 column) to search.}
 
-\item{max_time}{Maximum time within the resampled movement (taken from `"time"`
+\item{max_time}{Maximum time within the resampled movement (taken from \code{"time"}
 column) to search.}
 
 \item{method}{whether to extract the first time distance is smaller ("min", default)

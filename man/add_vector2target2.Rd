@@ -9,17 +9,17 @@ add_vector2target2(ref_movement, target_movement, join_by = "time")
 }
 \arguments{
 \item{ref_movement}{A data frame with reference movement, e.g. the head or
-the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`,
-`rot_x`, `rot_y`, `rot_z` columns. Eye-tracker file should have `gaze_origin_x`,
-`gaze_origin_y`,`gaze_origin_z`columns}
+the waist movement. Movement file should have \code{pos_x}, \code{pos_y}, \code{pos_z},
+\code{rot_x}, \code{rot_y}, \code{rot_z} columns. Eye-tracker file should have \code{gaze_origin_x},
+\code{gaze_origin_y},\code{gaze_origin_z}columns}
 
 \item{target_movement}{Movement of point of interest (e.g threat movement)}
 
 \item{join_by}{= "time" Column by which to join the two data frames (character)}
 }
 \value{
-`ref_movement` with columns `time`, `vector_to_target_x` `vector2target_y`
-`vector2target_z`  (raw vector relative
+\code{ref_movement} with columns \code{time}, \code{vector_to_target_x} \code{vector2target_y}
+\code{vector2target_z}  (raw vector relative
 to the moving target) added
 }
 \description{

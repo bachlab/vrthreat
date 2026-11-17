@@ -5,8 +5,10 @@ R package with generic analysis tools for VRThreat data generated with the VRthr
 Documentation: https://bachlab.github.io/vrthreat/index.html
 
 Documentation for older versions can be found at:
-https://bachlab.github.io/vrthreat/versions/v0.1.0
-https://bachlab.github.io/vrthreat/versions/v0.2.0
+
+1. https://bachlab.github.io/vrthreat/versions/v0.1.0
+2. https://bachlab.github.io/vrthreat/versions/v0.2.0
+3. https://bachlab.github.io/vrthreat/versions/v0.3.0
 
 # How to install the package from GitHub:
 

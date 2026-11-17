@@ -21,20 +21,19 @@ Converts Unity's specific (improper) Euler angles into a 3D rotation matrix for
 further computations.
 }
 \details{
-1. Unity uses (improper) Euler angles to output their internal quaternion representation.
-   (https://docs.unity3d.com/2018.4/Documentation/Manual/QuaternionAndEulerRotationsInUnity.html)
+\enumerate{
+\item Unity uses (improper) Euler angles to output their internal quaternion representation.
+(https://docs.unity3d.com/2018.4/Documentation/Manual/QuaternionAndEulerRotationsInUnity.html)
+\item These angles describe extrinsic rotations around the Z - X - Y coordinate axis
+(https://docs.unity3d.com/ScriptReference/Transform-eulerAngles.html)
 
-2. These angles describe extrinsic rotations around the Z - X - Y coordinate axis
-   (https://docs.unity3d.com/ScriptReference/Transform-eulerAngles.html)
-
-   (also verified from Unity editor and by comparing Unity output to videos)
-
-3. The angles are given as clockwise when the axis is pointing towards the observer
-   as the coordinate system is left-handed
-  (verified from Unity editor)
-
-4. The function uses basic rotation matrices and composition of rotations
-   (e.g. https://en.wikipedia.org/wiki/Rotation_matrix#Basic_rotations, the matrices
-   given there are for counterclockwise rotation for right-handed system;
-   the same rotations produce clockwise rotation in left-handed system
+(also verified from Unity editor and by comparing Unity output to videos)
+\item The angles are given as clockwise when the axis is pointing towards the observer
+as the coordinate system is left-handed
+(verified from Unity editor)
+\item The function uses basic rotation matrices and composition of rotations
+(e.g. https://en.wikipedia.org/wiki/Rotation_matrix#Basic_rotations, the matrices
+given there are for counterclockwise rotation for right-handed system;
+the same rotations produce clockwise rotation in left-handed system
+}
 }

@@ -7,7 +7,7 @@
 scale_pastel(...)
 }
 \arguments{
-\item{...}{Arguments passed to `scale_fill_hue` and `scale_color_hue`.}
+\item{...}{Arguments passed to \code{scale_fill_hue} and \code{scale_color_hue}.}
 }
 \value{
 A set of scales to be added to a ggplot.

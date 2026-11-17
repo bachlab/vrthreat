@@ -7,11 +7,11 @@
 scale_vrthreat_planningtime(...)
 }
 \arguments{
-\item{...}{Arguments passed to `scale_fill_manual` and `scale_color_manual`.}
+\item{...}{Arguments passed to \code{scale_fill_manual} and \code{scale_color_manual}.}
 }
 \value{
 A set of scales to be added to a ggplot.
 }
 \description{
-A fill/color scale used across planning time values (`1.5`, `5`).
+A fill/color scale used across planning time values (\code{1.5}, \code{5}).
 }

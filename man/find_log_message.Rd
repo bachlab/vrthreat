@@ -11,11 +11,11 @@ find_log_message(df, messages, .colnames)
 
 \item{messages}{A vector of string}
 
-\item{.colnames}{A vector of column names, the same size as `messages`}
+\item{.colnames}{A vector of column names, the same size as \code{messages}}
 }
 \value{
-A data frame with `trial_num`, `.colnames` (boolean), `.colnames_message`
-`.colnames_time` , `.colnames_number`, where the last three refer to the first
+A data frame with \code{trial_num}, \code{.colnames} (boolean), \code{.colnames_message}
+\code{.colnames_time} , \code{.colnames_number}, where the last three refer to the first
 detected message per trial
 }
 \description{

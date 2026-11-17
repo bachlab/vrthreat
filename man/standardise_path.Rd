@@ -6,13 +6,10 @@
 \usage{
 standardise_path(path)
 }
-\arguments{
-\item{path}{}
-}
 \value{
 standardised path
 }
 \description{
-This function ensures standardised path separators and capitalised drive 
+This function ensures standardised path separators and capitalised drive
 letters. This is important for string operations on path definitions.
 }

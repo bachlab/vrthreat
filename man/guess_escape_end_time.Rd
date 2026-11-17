@@ -26,7 +26,7 @@ and the fade time (often 0.05 s)}
 }
 \description{
 Guess the time at which escape movement ends, depending on trial outcome:
-Survived, killed: end of recording minus buffer and fade time
+If not going to safe house: end of recording minus buffer and fade time
 Escaped to safe house: crossing of the safe house threshold
 Assumes safe house size 1 m x 1 m x 2 m (height)
 Does not check whether people came through the door (only distance to safe

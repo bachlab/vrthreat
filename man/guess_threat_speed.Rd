@@ -17,7 +17,7 @@ guess_threat_speed(threat_df, player_df, scenario_data, threat_appear_time)
 }
 \value{
 A list with threat_speed and move_time (the duration of the movement
-        on which threat_speed is based on)
+on which threat_speed is based on)
 }
 \description{
 This function takes the threat movement up to player (2.5 m distance) or fruit

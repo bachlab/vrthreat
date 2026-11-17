@@ -9,15 +9,15 @@ add_vector2target(ref_movement, target_position)
 }
 \arguments{
 \item{ref_movement}{A data frame with reference movement, e.g. the head or
- the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`,
-columns. Eye-tracker file should have `gaze_origin_x`,
- `gaze_origin_y`,`gaze_origin_z`columns}
+the waist movement. Movement file should have \code{pos_x}, \code{pos_y}, \code{pos_z},
+columns. Eye-tracker file should have \code{gaze_origin_x},
+\code{gaze_origin_y},\code{gaze_origin_z}columns}
 
-\item{target_position}{A list containing `pos_x` `pos_y` `pos_z` target position}
+\item{target_position}{A list containing \code{pos_x} \code{pos_y} \code{pos_z} target position}
 }
 \value{
-`rev_movement` with new columns `vector2target_x` `vector2target_y`
-`vector2target_z`
+\code{rev_movement} with new columns \code{vector2target_x} \code{vector2target_y}
+\code{vector2target_z}
 }
 \description{
 Returns the same data frame with added vector.

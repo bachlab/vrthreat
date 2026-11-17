@@ -7,7 +7,7 @@
 extract_recording_duration(df)
 }
 \arguments{
-\item{df}{A movement tibble (must contain a column `time`)}
+\item{df}{A movement tibble (must contain a column \code{time})}
 }
 \value{
 Scalar duration, i.e. difference between last and first time stamp

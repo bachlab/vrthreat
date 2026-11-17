@@ -7,17 +7,17 @@
 read_log_messages(df, messages, .colnames)
 }
 \arguments{
-\item{df}{Data frame of trial results, containing column `res_path`}
+\item{df}{Data frame of trial results, containing column \code{res_path}}
 
 \item{messages}{Vector of string messages to detect}
 
-\item{.colnames}{Vector of column names to insert into `df`}
+\item{.colnames}{Vector of column names to insert into \code{df}}
 }
 \value{
 Original data frame with the following columsn added:
- `.colnames` (boolean), `.colnames_message`, `.colnames_time` ,
- `.colnames_number`, where the last three refer to the first detected
- message per trial
+\code{.colnames} (boolean), \code{.colnames_message}, \code{.colnames_time} ,
+\code{.colnames_number}, where the last three refer to the first detected
+message per trial
 }
 \description{
 Read log messages from log files to combine with trial results

@@ -11,8 +11,9 @@ Tools for analysing data from the Unity project "VRThreat". This package provide
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/bachlab/vrthreat}
-  \item Report bugs at \url{https://github.com/bachlab/vrthreat/issues}
+  \item \url{https://gitlab.com/bachlab/erc/vrthreat}
+  \item \url{https://bachlab.gitlab.io/erc/vrthreat}
+  \item Report bugs at \url{https://gitlab.com/bachlab/erc/vrthreat/-/issues}
 }
 
 }
@@ -21,6 +22,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Dominik R Bach \email{d.bach@uni-bonn.de} (\href{https://orcid.org/0000-0003-3717-2036}{ORCID})
   \item Jack Brookes (\href{https://orcid.org/0000-0002-4600-7561}{ORCID})
 }
 

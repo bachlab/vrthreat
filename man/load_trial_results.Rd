@@ -10,8 +10,8 @@ load_trial_results(trial_results_path, cleaning = TRUE)
 \item{trial_results_path}{A string specifying the file path to the trial results file.
 The file must exist and be a valid R data file.}
 
-\item{cleaning}{A logical value indicating whether to clean the loaded data. Defaults to `TRUE`.
-If `TRUE`, column names are standardized to snake_case, and columns matching "location" are removed.}
+\item{cleaning}{A logical value indicating whether to clean the loaded data. Defaults to \code{TRUE}.
+If \code{TRUE}, column names are standardized to snake_case, and columns matching "location" are removed.}
 }
 \value{
 A data frame containing the trial results, optionally cleaned.

@@ -13,16 +13,16 @@ add_orientation2target(
 }
 \arguments{
 \item{ref_movement}{A data frame with reference movement, e.g. the head or
-the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`,
-`rot_x`, `rot_y`, `rot_z` columns.}
+the waist movement. Movement file should have \code{pos_x}, \code{pos_y}, \code{pos_z},
+\code{rot_x}, \code{rot_y}, \code{rot_z} columns.}
 
-\item{target_position}{A list containing `pos_x` `pos_y` `pos_z` target position}
+\item{target_position}{A list containing \code{pos_x} \code{pos_y} \code{pos_z} target position}
 
 \item{relative_to_first}{= FALSE}
 }
 \value{
-`rev_movement` with new columns `target_diff` (raw angle relative
-to target) and `target_ratio` (cosine of angle)
+\code{rev_movement} with new columns \code{target_diff} (raw angle relative
+to target) and \code{target_ratio} (cosine of angle)
 }
 \description{
 Returns the same data frame with added cos(angle) and

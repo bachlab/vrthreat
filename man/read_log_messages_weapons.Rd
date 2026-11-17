@@ -7,28 +7,28 @@
 read_log_messages_weapons(df, messages, .colnames)
 }
 \arguments{
-\item{df}{A data frame containing trial results. Must include a `res_path` column indicating
-the results path for each trial and a `trial_num` column for trial numbering.}
+\item{df}{A data frame containing trial results. Must include a \code{res_path} column indicating
+the results path for each trial and a \code{trial_num} column for trial numbering.}
 
-\item{messages}{A string specifying the log message identifier to search for (e.g., `"@WEAPONATTACHEVENT"`).}
+\item{messages}{A string specifying the log message identifier to search for (e.g., \code{"@WEAPONATTACHEVENT"}).}
 
-\item{.colnames}{A string specifying the name to assign to the extracted weapon message column (e.g., `"weapon"`).}
+\item{.colnames}{A string specifying the name to assign to the extracted weapon message column (e.g., \code{"weapon"}).}
 }
 \value{
-A data frame identical to the input `df` but augmented with new columns containing
-  the extracted weapon messages (`weapon_message`) and the corresponding `res_path`. The
-  joined data includes the weapon messages aligned with their respective trials based on
-  `res_path` and `trial_num`.
+A data frame identical to the input \code{df} but augmented with new columns containing
+the extracted weapon messages (\code{weapon_message}) and the corresponding \code{res_path}. The
+joined data includes the weapon messages aligned with their respective trials based on
+\code{res_path} and \code{trial_num}.
 }
 \description{
 Extracts weapon-related log messages from session log files and joins them with the provided trial data.
-This function reads log files located in each `res_path` directory, searches for specific weapon
+This function reads log files located in each \code{res_path} directory, searches for specific weapon
 events based on the provided message identifier, and appends the extracted information to the
 original data frame.
 }
 \examples{
 \dontrun{
-# Assuming `trials_raw` is your initial data frame with `res_path` and `trial_num` columns
+# Assuming `trials_raw` is your initial data frame with columns `res_path`, `trial_num` and `missing_log_file`
 trials_raw <- trials_raw \%>\%
   read_log_messages_weapons("@WEAPONATTACHEVENT", "weapon")
 }

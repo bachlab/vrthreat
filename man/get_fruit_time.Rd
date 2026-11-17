@@ -8,7 +8,7 @@ This function returns the exact time stamp of this fruit.}
 get_fruit_time(df, n = 1, event_type = "collect")
 }
 \arguments{
-\item{df}{A fruit collection data frame. Expected columns are `time` and `event`.}
+\item{df}{A fruit collection data frame. Expected columns are \code{time} and \code{event}.}
 
 \item{n}{A specific fruit (integer) or "last" (default: 1)}
 

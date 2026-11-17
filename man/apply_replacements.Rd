@@ -10,21 +10,21 @@ apply_replacements(df, replacements_df, remove_duplicates = TRUE)
 \item{df}{A trial results data frame.}
 
 \item{replacements_df}{A data frame with columns
-`"ppid_old"`,`"ppid_new"`,`"session_num_new"`, `"last_trial_exclude"`}
+\code{"ppid_old"},\code{"ppid_new"},\code{"session_num_new"}, \code{"last_trial_exclude"}}
 
-\item{remove_duplicates}{Whether or not to remove consecutive duplicate trials 
-(default: `TRUE`).}
+\item{remove_duplicates}{Whether or not to remove consecutive duplicate trials
+(default: \code{TRUE}).}
 }
 \description{
-Replaces the `ppid` and `session_num` of data in your trial results. This is
+Replaces the \code{ppid} and \code{session_num} of data in your trial results. This is
 used if, for example, you must repeat some specific trials with a participant
 under a new PPID. This replaces the trials found in the trial results with
 those under the alternative ppid. They are marked with a new session number
 to allow them to be distinguished. Any episodes (as defined by the string in
 the episode column) are replaced with those in the replacement session.
-Often, trials are repeated because of a failure. If `last_trial_exclude` is
+Often, trials are repeated because of a failure. If \code{last_trial_exclude} is
 set to 1, then the last trial from the previous session of the matched ppid
 will be excluded. Afterwards, in case the exact same trial was repeated in
-a row in the last trial of the aborted session and the first trial of the new 
-session, only the first occurrence can be retained if `remove_duplicates` is set.
+a row in the last trial of the aborted session and the first trial of the new
+session, only the first occurrence can be retained if \code{remove_duplicates} is set.
 }

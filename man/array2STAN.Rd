@@ -6,9 +6,6 @@
 \usage{
 array2STAN(in_array)
 }
-\arguments{
-\item{in_array}{}
-}
 \value{
 out_array a stan-compatible array of arrays
 }

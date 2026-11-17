@@ -7,20 +7,20 @@
 extract_path_length(movement_data, min_time = NULL, max_time = NULL)
 }
 \arguments{
-\item{movement_data}{A data frame containing `pos_x`, `pos_z`, and `time` columns.}
+\item{movement_data}{A data frame containing \code{pos_x}, \code{pos_z}, and \code{time} columns.}
 
 \item{min_time}{Optional minimum time for filtering the movement data.}
 
 \item{max_time}{Optional maximum time for filtering the movement data.}
 }
 \value{
-A numeric value representing the total path length, or `NA_real_` if
-  the input is invalid or insufficient.
+A numeric value representing the total path length, or \code{NA_real_} if
+the input is invalid or insufficient.
 }
 \description{
 Calculates the total 2D path length from x- and z-coordinate movement data,
 optionally within a specified time window. Assumes the data contains at least
-two rows with columns `pos_x`, `pos_z`, and `time`.
+two rows with columns \code{pos_x}, \code{pos_z}, and \code{time}.
 }
 \examples{
 extract_path_length(movement_data)

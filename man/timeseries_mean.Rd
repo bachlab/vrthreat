@@ -2,20 +2,24 @@
 % Please edit documentation in R/maths_functions.R
 \name{timeseries_mean}
 \alias{timeseries_mean}
-\title{Compute the mean across a vector `x` respecting time `t`, using trapezium
+\title{Compute the mean across a vector \code{x} respecting time \code{t}, using trapezium
 rule.}
 \usage{
-timeseries_mean(x, t)
+timeseries_mean(x, t, na_handling = "keep")
 }
 \arguments{
 \item{x}{Numeric values}
 
 \item{t}{Time values}
+
+\item{na_handling}{String options "keep" "discard" "zero" (default "keep")}
 }
 \value{
-Estimate of `x` across time values
+Estimate of \code{x} across time values
 }
 \description{
-Compute the mean across a vector `x` respecting time `t`, using trapezium
-rule.
+NA encountered in x can be handled three ways.
+"keep" where final computation will be NA if NAs encountered.
+"discard" time intervals with NA observation dropped.
+"zero" NA replaced with 0 and included in the time weighted sum
 }

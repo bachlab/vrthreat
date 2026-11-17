@@ -1,9 +1,14 @@
+url: https://bachlab.gitlab.io/erc/vrthreat
+
 reference:
 - title: Anotate Movement
   desc: >
     Anotate dataframes by adding movement related data/computations as columns
   contents:
     - add_angular_diff
+    - add_direction
+    - add_dist
+    - add_dist2
     - add_fixation2target
     - add_gaze_elevation
     - add_in_view
@@ -20,17 +25,28 @@ reference:
   desc: >
     Extract common computations from data
   contents:
+    - extract_at_distance
+    - extract_at_time
+    - extract_direction
+    - extract_displacement
+    - extract_durations 
     - extract_fixation
     - extract_fruit_task
+    - extract_frequent_label
     - extract_gaze_elevation
     - extract_movement_dist
     - extract_movement2_dist
     - extract_orientation
     - extract_orientation2
     - extract_path_length
+    - extract_pupil
     - extract_recording_duration
+    - extract_sequence
     - extract_speed
     - extract_speed_angular
+    - extract_timemask
+    - extract_with_timemask
+    - extract_time_bins
     - extract_timestamp_duplicates
 
 - title: Movement Processing
@@ -40,6 +56,8 @@ reference:
     - average_timeseries
     - check_valid_movement
     - combine_movement
+    - convert_qualisys2vrthreat
+    - correct_movement_timing
     - get_first_fruit_collection
     - get_fruit_time
     - guess_first_view
@@ -51,14 +69,29 @@ reference:
     - guess_pos_at_time
     - guess_threat_speed
     - guess_time_at_dist2
+    - find_movement_latencies
     - prepare_gaze_data
+    - reorient_movement
     - reorient_movement_to_start
+    - reorient_qualisys2unity
+    - reorient_unity2qualisys
     - resample_eyetracker
     - resample_filter_pos
     - resample_fruit_task
     - resample_movement
     - summarise_movement
     - translate_movement_to_ref
+
+- title: Label Processing
+  desc: >
+    Manage label columns (i.e columns containing strings) in dataframes.
+  contents:
+    - add_ngram
+    - clean_labels
+    - find_all_labels
+    - map_labels
+    - merge_labels
+    - reduce_label_sequence
 
 - title: Trial Processing
   desc: >
@@ -67,14 +100,19 @@ reference:
     - apply_replacements
     - average_timeseries_cols
     - check_tracker_cols
+    - correct_movement_timing_cols
     - create_threat_name
     - fix_old_names
+    - get_label_distribution
     - remove_tutorials
+    - reorient_movement_cols
     - reorient_movement_cols_to_start
+    - reorient_qualisys2unity_cols
     - resample_eyetracker_cols
     - resample_fruit_task_cols
     - resample_movement_cols
     - summarise_movement_cols
+    - translate_ref_movement_cols
     - process_trial_results
 
 - title: Scenario Processing
@@ -84,10 +122,14 @@ reference:
     - find_fruit_position
     - find_initial_threat_position
     - find_safe_position
+    - find_scenario_position
     - find_start_position
     - find_unity_threat_name
+    - find_weapon_position
+    - flatten_scenario_data
     - get_time_of_first_event
     - get_time_of_first_event_multi
+    - generate_position_list
 
 - title: Questionnaire
   desc: >
@@ -105,9 +147,12 @@ reference:
     Help play and annotate sounds
   contents:
     - detect_sound
+    - detect_sound_cols
     - get_audio_section
+    - join_sound_classification
     - play_audio_from_threat
     - play_audio_section
+    - read_sound_classification
     - sound_classification_manual
     - sound_detection_manual
     - write_audio_section
@@ -127,6 +172,7 @@ reference:
     - read_participant_details
     - read_study_data
     - read_trial_results
+    - remove_study_path
     - remove_tld
     - save_fig
     - split_path
@@ -151,14 +197,21 @@ reference:
   - create_resampling_index
   - cummean_na
   - eulunity2rot
+  - rot2eulunity
+  - eulunity2quaternion
+  - quaternion2eulunity
+  - quaternion2rot
+  - rot2quaternion
   - find_argmax
   - find_argmin
   - find_max
   - find_min
+  - median_quaternion
   - orthdist
   - proj_vec2vec
   - proj_vec2plane
   - rot2centralangle
+  - reorient_eulunity
   - timeseries_mean
   - vec2rot
 
@@ -180,6 +233,28 @@ reference:
     - scale_vrthreat_planningtime
     - scale_vrthreat_scenariotype
     - theme_vrthreat
+    - plot_action_heatmaps
+    - plot_community_bubbles
+
+- title: Validation
+  desc: >
+    Validate inputs and generate expressive warnings
+  contents:
+    - validate_has_columns
+    - validate_has_gaze_direction
+    - validate_has_gaze_or_rotation
+    - validate_has_position_or_rotation
+    - validate_has_position
+    - validate_has_rotation
+    - validate_has_time
+    - validate_numeric
+    - validate_option
+    - validate_positional_list
+    - validate_skip_on_null
+    - validate_tibble_non_empty
+    - validate_time_interval
+    - validate_overlap
+    - validate_vector_lengths
 
 - title: Utility
   desc: >
@@ -192,6 +267,7 @@ reference:
     - find_hierarchy_object_any
     - find_log_message
     - identify_na_columns
+    - prepare_for_public_release
     - remove_missing_columns
     - test_source_fun_run_tests_rep_coverage
 
@@ -199,6 +275,7 @@ reference:
   desc: >
     Constants
   contents:
+    - example_data
     - fruit_gameobject_names
 
 ...

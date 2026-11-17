@@ -47,6 +47,80 @@ fix_old_names <- function(df){
   dplyr::rename_with(df, ~stringr::str_replace(., "vrthreat_", ""))
 }
 
+#' Find all unique labels across trials 
+#' 
+#' Finds all unique labels within nested tibbles across a trial_results tibble 
+#'
+#' @param df trial_results tribble
+#' @param outer_col String name of the column containing the action sequence tibbles
+#' @param inner_col String name of the column in the action sequence tibble that contains the actions
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+find_all_labels <- function(df, outer_col, inner_col) {
+  df %>%
+    dplyr::ungroup() %>%
+    dplyr::pull(outer_col) %>%
+    dplyr::bind_rows() %>%
+    dplyr::pull(inner_col) %>%
+    unique()
+}
+
+
+#' Get distribution of labels or similar categorical data across a trial results dataframe.
+#'
+#' Takes a trial results dataframe, extracts durations of each unique label within nested tibbles
+#' and returns the distribution of durations per label and proportion of total time. 
+#' 
+#' If the trial results dataframe is grouped then it returns a tibble with the
+#' distributions nested in `distributions` column per group. 
+#' 
+#' @param df A trial results df
+#' @param outer_col The column containing nested tibbles. (string)
+#' @param inner_col The column within a nested tibble
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+get_label_distribution <- function(df, outer_col, inner_col) {
+  #Save grouping data
+  group_names <- dplyr::group_vars(df)
+
+  #Compute Durations
+  df <- df %>%
+  dplyr::rowwise() %>%
+  dplyr::mutate(dist_durations := list(extract_durations(.data[[outer_col]], inner_col)))
+
+  #Regroup data
+  df <- dplyr::grouped_df(df, group_names)
+  
+  #Helper function
+  combine_durations <- function(df){
+    df %>%
+      dplyr::group_by(.data[[inner_col]]) %>%
+      dplyr::summarise(duration = sum(duration, na.rm = TRUE)) %>%
+      dplyr::mutate(proportion = duration/sum(duration)) %>%
+      dplyr::arrange(dplyr::desc(duration)) 
+  }
+  
+  #Final Computation
+  distributions <- df %>% 
+    dplyr::summarise(
+      dist_durations = list(dplyr::bind_rows(dist_durations)),
+    ) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(distribution = list(combine_durations(dist_durations))) %>%
+    dplyr::select(-dist_durations) %>%
+    dplyr::ungroup()
+
+  if(length(group_names) == 0)
+    return(distributions$distribution[[1]])
+  else
+    return(distributions)
+}
 
 #' Apply replacements using replacement data frame.
 #'
@@ -159,15 +233,121 @@ reorient_movement_cols_to_start <-
         ))
   }
 
-
-#' Resample movement data columns
+#' Reorient movement data columns by affine transformation
 #'
-#' Convenient wrapper around `resample_movement`. For provided columns, resamples
-#' movement dataframes contained in the columns between times stored in
-#' `start_resample_col` and `end_resample_col`. Resampling is done up to a max
-#' duration of `max_duration` with a sample rate `sample_rate`. Non-existing
-#' time points for any trial are filled with "NA". Position values will be reoriented
+#' This is a wrapper function for `reorient_movement`. See there for details.
+#' Applies the same affine transformation to selected movement data columns
+#' within each row of a trial results data frame.
+#'
+#' If `scenario_col` is provided, the corresponding scenario data are passed to
+#' `reorient_movement` for each row. This can be used to apply or undo scenario
+#' position and rotation transformations.
+#'
+#' @param df A trial_results data frame.
+#' @param .cols A tidy selection of columns to work on. Default: all movement data.
+#' @param R A 3 x 3 rotation matrix or reference to column containing rotation matrices Default: no rotation.
+#' @param offset A 3-element translation vector in rotated coordinates
+#'   Default: no translation.
+#' @param scenario_col A column containing scenario data. Default: `NULL`.
+#' @param scenario_direction Either `"apply"` or `"undo"`. Default: `"apply"`.
+#'
+#' @returns The trial_results tibble with all selected movement columns
+#'   reoriented.
+#' @export
+#'
+#' @examples
+reorient_movement_cols <- function(df,
+                                   .cols = tidyselect::ends_with("_movement_data_0") & !(tidyselect::starts_with("valid")),
+                                   R = diag(3),
+                                   offset = c(0, 0, 0),
+                                   scenario_col = NULL,
+                                   scenario_direction = "apply") {
+  df %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(dplyr::across(
+      {{ .cols }},
+      ~ list(reorient_movement(.x, 
+                               R = if(is.character(R)) .data[[R]] else R,
+                               offset = if(is.character(offset)) .data[[offset]] else offset,
+                               scenario_data = if (!is.null(scenario_col)) .data[[scenario_col]],
+                               scenario_direction = scenario_direction))))
+}
+
+
+#' Reorient movement data columns from Qualisys into Unity
+#' 
+#' This is a wrapper function for `reorient_qualisys2unity`. See there for details.
+#'   
+#' Provide the offset as a vector in Unity coordinates (FROM Unity Scenario origin TO Qualisys origin).
+#' The function can also apply the rotation to local scenario coordinates provided in a scenario data object.
+#' This would ensure the returned data is in global coordinates.
+#' 
+#' It is recommended to include scenario data as all data stored via UXF from unity VR is in global coordinates.
+#' 
+#' @param df a trial_results data frame
+#' @param .cols A tidy selection of columns to work on. Default: `all_of("mocap")`.
+#' @param offset A 3-element translation vector in Unity coordinates (from Unity Scenario Origin towards Qualisys Mocap origin)
+#' @param scenario_col A column containing scenario data (Default:NULL)
+#'
+#' @returns The trial_results tibble with all position columns reoriented 
+reorient_qualisys2unity_cols <- function(df,
+                                         .cols = tidyselect::all_of("mocap"),
+                                         offset = c(0,0,0),
+                                         scenario_col = NULL) {
+  df %>% 
+    dplyr::rowwise() %>%
+    dplyr::mutate(dplyr::across(
+      {{ .cols }},
+      ~ list(reorient_qualisys2unity(.x, offset = offset,
+            if (!is.null(scenario_col)) .data[[scenario_col]]))
+    ))
+}
+
+
+
+#' Translate movement cols as per reference column
+#' 
+#' Convenient wrapper around [reorient_movement]
+#' 
+#' Non-existing time points for any trial are filled with "NA". Position values will be reoriented
 #' to reference position if given.
+#' 
+#' @param df A trial results data frame.
+#' @param .cols Columns containing dataframes to resample.
+#' (Default: all movement data). Each data frame must have a column 'time'.
+#' @param ref_pos_col Column containing reference position (e.g. fruit picking position)
+#'
+#' @return The data frame with movement data offset and new columns with resampling, with
+#' new column name ending with `_resampled`.
+#' @export
+#'
+#' @examples
+translate_ref_movement_cols <- function(df,
+                                        .cols = tidyselect::ends_with("_movement_data_0") & !(tidyselect::starts_with("valid")),
+                                        ref_pos_col = c()){
+  # Translate to reference position
+  if (ncol(dplyr::select(df, {{ ref_pos_col }})) > 0) {
+    df <- df %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      dplyr::across(
+        {{ .cols }},
+        ~ list(reorient_movement(.x, offset = lapply(.data[[ref_pos_col]], `-`)))
+      )
+    ) 
+  }
+
+  df
+}
+
+
+#' Resample and relocate movement data columns
+#'
+#' Convenient wrapper around [resample_movement]
+#' 
+#' Non-existing time points for any trial are filled with "NA". Position values will be reoriented
+#' to reference position if given.
+#' 
 #' Returns the data frame with new columns added.
 #'
 #' To resample fruit collection and eyetracker data, see
@@ -176,51 +356,32 @@ reorient_movement_cols_to_start <-
 #' @param df A trial results data frame.
 #' @param .cols Columns containing dataframes to resample.
 #' (Default: all movement data). Each data frame must have a column 'time'.
-#' @param start_resample_col Column containing start timestamps.
-#' @param end_resample_col Column containing end timestamps.
-#' @param max_duration Maximum duration of the resample.
-#' @param sample_rate New sample rate (Hz).
+#' @param sample_rate New sample rate (Hz) (default 10).
 #' @param ref_pos_col Column containing reference position (e.g. fruit picking position), default
 #' is relative to origin (i.e. just resample, no translation)
 #'
-#' @return The data frame with a new columns of resampled movements added, with
+#' @return The data frame with movement data offset and new columns with resampling, with
 #' new column name ending with `_resampled`.
 #' @export
 #'
 #' @examples
-resample_movement_cols <-
-  function(df,
-           .cols = tidyselect::ends_with("_movement_data_0") & !(tidyselect::starts_with("valid")),
-           start_resample_col,
-           end_resample_col,
-           max_duration,
-           sample_rate = 10.0,
-           ref_pos_col = c()) {
-
-    new_time <- create_resampling_index(max_duration, sample_rate)
-
-    df <- df %>%
-      ungroup() %>%
-      rowwise()
-
-    if (ncol(select(df, {{ ref_pos_col }})) > 0) {
-      df <- df %>%
-        dplyr::mutate(
-          dplyr::across(
-            {{ .cols }}, ~ translate_movement_to_ref(., {{ ref_pos_col }})
-          ))
-    }
-
-    df %>%
-      dplyr::mutate(
-        dplyr::across(
-          {{ .cols }}, ~ resample_movement(.,
-                                           new_time,
-                                           {{ start_resample_col }},
-                                           {{ end_resample_col }}),
-          .names = "{paste0(.col, '_resampled')}"
-        ))
+resample_movement_cols <-function(df,
+                                  .cols = tidyselect::ends_with("_movement_data_0") & !(tidyselect::starts_with("valid")),
+                                  sample_rate = NULL) {    
+  # Resample if resample rate given
+  if(!is.null(sample_rate) && !is.na(sample_rate)){
+  df <- df %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      dplyr::across(
+        {{ .cols }}, ~ list(resample_movement(.,
+                                          sample_rate = sample_rate)),
+        .names = "{paste0(.col, '_resampled')}"
+      ))
   }
+    
+  df
+}
 
 #' Resample fruit task data columns
 #'
@@ -354,7 +515,7 @@ average_timeseries_cols <-
 #'
 #' @param df A trial results data frame.
 #' @param .cols Columns containing movement dataframes
-#' (Default: all movement data).
+#' (Default: all movement and eye tracking data).
 #' @param by Time stamp column, default is `time`
 #'
 #' @return The same data frame with old movement data columns replaced
@@ -363,7 +524,8 @@ average_timeseries_cols <-
 #' @examples
 summarise_movement_cols <-
   function(df,
-           .cols = tidyselect::ends_with("_movement_data_0")
+           .cols = (tidyselect::ends_with("_movement_data_0") | 
+                      tidyselect::ends_with("_eye_tracking_data_0"))
            & !(tidyselect::starts_with("valid")),
            by = "time") {
     df %>%

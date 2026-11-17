@@ -7,28 +7,32 @@
 extract_movement2_dist(
   df1,
   df2,
-  min_time = min(c(df1$time, df2$time)),
-  max_time = max(c(df1$time, df2$time)),
+  min_time = min(c(df1$time, df2$time), na.rm = TRUE),
+  max_time = max(c(df1$time, df2$time), na.rm = TRUE),
   method = "min",
-  samplingrate = 10
+  samplingrate = 10,
+  threshold = 0
 )
 }
 \arguments{
 \item{df1}{A dataframe of movement (must contain standard trajectory
-columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).}
+columns, i.e. \code{"time"}, \code{"pos_x"}, \code{"pos_y"}, \code{"pos_z"}).}
 
 \item{df2}{A dataframe of movement (must contain standard trajectory
-columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).}
+columns, i.e. \code{"time"}, \code{"pos_x"}, \code{"pos_y"}, \code{"pos_z"}).}
 
-\item{min_time}{Minimum time within the resampled movement (taken from `"time"`
+\item{min_time}{Minimum time within the resampled movement (taken from \code{"time"}
 column) to search.}
 
-\item{max_time}{Maximum time within the resampled movement (taken from `"time"`
+\item{max_time}{Maximum time within the resampled movement (taken from \code{"time"}
 column) to search.}
 
-\item{method}{whether to extract min (default), max or mean}
+\item{method}{whether to extract "min" (default), "max", "mean", "mse", or proportion of
+time the distance is "less" or "greater" than a threshold}
 
 \item{samplingrate}{resampling rate}
+
+\item{threshold}{numerical threshold if method is "less" or "greater", ignored otherwise}
 }
 \value{
 A numeric value of the minimum 2D distance of the two movement trajectories.
@@ -38,8 +42,11 @@ Searches two dataframes of movement trajectories and summarises distance
 (ignoring y) between the two trajectories as average or minimum.
 }
 \details{
+The "mse" option (Mean Squared Error) calculates the time weighted average of squared disance (Squared error) from
+the reference position.
+
 NOTE: because sampling times can differ between data frames, data are
 resampled at default rate of 10 Hz, and to avoid an impact of tracker
 glitches they are median-smoothed over 3 data points (300 ms), using the function
-`combine_movement()`
+\link{combine_movement}
 }

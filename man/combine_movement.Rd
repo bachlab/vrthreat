@@ -7,28 +7,30 @@
 combine_movement(
   df1,
   df2,
-  min_time = min(c(df1$time, df2$time)),
-  max_time = max(c(df1$time, df2$time)),
+  min_time = max(c(min(df1$time), min(df2$time))),
+  max_time = min(c(max(df1$time), max(df2$time))),
   samplingrate = 10
 )
 }
 \arguments{
 \item{df1}{A dataframe of movement (must contain standard trajectory
-columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).}
+columns, i.e. \code{"time"}, \code{"pos_x"}, \code{"pos_y"}, \code{"pos_z"}).}
 
 \item{df2}{A dataframe of movement (must contain standard trajectory
-columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).}
+columns, i.e. \code{"time"}, \code{"pos_x"}, \code{"pos_y"}, \code{"pos_z"}).}
 
-\item{min_time}{Minimum time within the resampled movements (taken from `"time"`
+\item{min_time}{Minimum time within the resampled movements (taken from \code{"time"}
 column) to search.}
 
-\item{max_time}{Maximum time within the resampled movements (taken from `"time"`
+\item{max_time}{Maximum time within the resampled movements (taken from \code{"time"}
 column) to search.}
 
 \item{samplingrate}{resampling rate}
 }
 \value{
-a combined data frame with original position columns suffixed by .1 and .2
+a combined data frame with resampled position/rotation columns
+and filtered/resampled position/rotation columns. Columns from the
+input data frames are suffixed by .1 and .2, respectively
 }
 \description{
 This is a convenience function used in extract_ and get_ functions that deal

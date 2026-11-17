@@ -6,30 +6,33 @@
 \usage{
 extract_timestamp_duplicates(
   df,
-  min_time = min(df$time),
-  max_time = max(df$time),
+  min_time = min(df$time, na.rm = TRUE),
+  max_time = max(df$time, na.rm = TRUE),
   method = "max"
 )
 }
 \arguments{
-\item{df}{A summarised movement data frame (must contain a column `n`)}
+\item{df}{A summarised movement data frame (must contain a column \code{n})}
 
-\item{min_time}{Minimum time within the ref_movement (taken from `"time"`
+\item{min_time}{Minimum time within the ref_movement (taken from \code{"time"}
 column) to search.}
 
-\item{max_time}{Maximum time within the ref_movement (taken from `"time"`
+\item{max_time}{Maximum time within the ref_movement (taken from \code{"time"}
 column) to search.}
 
-\item{method}{whether to extract maximum number of duplicates (`max`, default),
-total number of duplicates (`total`), or the number of duplicated time stamps
-(`number`)}
+\item{method}{whether to extract maximum number of duplicates (\code{max}, default),
+total number of duplicates (\code{total}), or the number of duplicated time stamps
+(\code{number})}
 }
 \value{
-Numeric, depending on `method`
+Numeric, depending on \code{method}
 }
 \description{
 Extracts the number of duplicated time stamps in a summarised movement
-trajectory between a `min_time` and `max_time`.
+trajectory between a \code{min_time} and \code{max_time}. Use \code{\link[=summarise_movement]{summarise_movement()}}.
+Duplicated timestamps indicate an aborted trial - not tracker error.
+}
+\details{
 Returns the number of duplicated time stamps, total number of duplicates,
 or maximum number of duplicates.
 }

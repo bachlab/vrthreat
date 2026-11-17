@@ -10,12 +10,12 @@ get_time_of_first_event_multi(df, event_type)
 \item{df}{The entire trial_results data frame}
 
 \item{event_type}{A string containing the name of the event type column. This
-should contain a character vector of `"Wait"`, `"Event Call"`,
-`"Animate Behaviour"`, `"Move Towards`, `"Rotate Towards"` `"Head Look"`.}
+should contain a character vector of \code{"Wait"}, \code{"Event Call"},
+\code{"Animate Behaviour"}, \verb{"Move Towards}, \code{"Rotate Towards"} \code{"Head Look"}.}
 }
 \value{
-The entire trial_results data frame with columns `first_event_time`
-and `first_event_index`  added
+The entire trial_results data frame with columns \code{first_event_time}
+and \code{first_event_index}  added
 }
 \description{
 Looks in the specified rows find the time at which the first
