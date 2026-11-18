@@ -124,6 +124,46 @@ find_scenario_position <- function(scenario_data) {
 }
 
 
+#' Find weapon position
+#' 
+#' This function finds (potentially multiple) weapon positions and returns them 
+#' in a tibble of nested lists, which can be integrated into a trial_results tibble
+#' with `unnest()`
+#'
+#' @param scenario_data A scenario list
+#' @param weapon_list A string vector of weapon names (default: `c("HoldableStone",
+#'                    "HoldableTorch", "HoldableStick")`)
+#'
+#' @returns A tibble of nested lists
+#' @export
+#'
+#' @examples `trial_results %>%` 
+#'           `mutate(position = find_weapon_position(scenario_data_0)) %>%`
+#'           `unnest(position, sep = "_")`
+find_weapon_position <- function(scenario_data, 
+                                 weapon_list = c("HoldableStone",
+                                                 "HoldableTorch",
+                                                 "HoldableStick")) {
+  
+  get_weapon <- function(weapon, scenario_data) {
+    weapon_object <- find_hierarchy_object(scenario_data, weapon) 
+    if (is.null(weapon_object)) return(NULL)
+    weapon_object <- generate_position_list(weapon_object) 
+  }
+  
+  if (is.null(scenario_data)) {
+    weapon_positions <- as.list(setNames(rep(list(NULL), length(weapon_list)), weapon_list))
+  } else  {
+    weapon_positions <- map(weapon_list, get_weapon, scenario_data)
+    names(weapon_positions) <- weapon_list
+  }
+  
+  # create column tibble even if all elements are NULL
+  return(tibble(!!!map(weapon_positions, ~ list(.x %||% list()))))
+  
+}
+
+
 #' Find Unity's internal threat name
 #'
 #' Finds the name that Unity uses for the threat object. This is useful for
@@ -192,7 +232,7 @@ find_initial_threat_position <- function(scenario_data) {
 #'   parsed to a `list`).
 #' @param event_type A vector containing the names event types. Should be
 #'   one of `"Wait"`, `"Event Call"`, `"Animate Behaviour"`, `"Move Towards`,
-#'   `"Rotate Towards"` `"Head Look"`. It can also be `"VerbaliseClip"`,
+#'   `"Rotate Towards"` `"Head Look"`. It can also be `"VerbaliseClip"` or `"Attack"`,
 #'   a specific animation of type `"Animate Behaviour"`. The time of the first
 #'   detected event is returned.
 #'
@@ -211,9 +251,12 @@ get_time_of_first_event <- function(sequence_data, event_type) {
     event_type <- unlist(event_type)
   }
 
-  if ("VerbaliseClip" %in% event_type) {
+  special_animations <- c("VerbaliseClip", "Attack")
+  special_animations_index <- (special_animations %in% event_type)
+  
+  if (any(special_animations_index)) {
     event_type <- c(event_type, "Animate Behaviour")
-    animation_check <- "VerbaliseClip"
+    animation_check <- special_animations[special_animations_index]
   } else {
     animation_check <- NA
   }
@@ -227,7 +270,7 @@ for (result in sequence_data$results) {
       result$event_type == "Animate Behaviour" &&
       !is.na(animation_check) &&
       !is.null(result$animation) &&
-      result$animation == animation_check
+      result$animation %in% animation_check
     ) ||
     result$event_type != "Animate Behaviour" ||
     is.na(animation_check)

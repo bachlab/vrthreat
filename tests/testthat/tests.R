@@ -1,247 +1,5 @@
 
 # ------------------------------------------------------------------------------
-# --- maths functions ----------------------------------------------------------
-# ------------------------------------------------------------------------------
-
-# -- angle_diff_deg() ----------------------------------------------------------
-test_that("Angle difference is calculated correctly",{
-  expect_equal(
-    angle_diff_deg(
-      c(10, 360, 380, -120, -360, -720),
-      c(-10, 380, 360, -170, 370, -180)
-    ),
-    c(20, -20, 20, 50, -10, -180)
-  )
-})
-
-
-# -- calculate_2d_angle_deg() --------------------------------------------------
-test_that("calculate_2d_angle_deg gives correct output", {
-  expect_equal(
-    c(
-      calculate_2d_angle_deg(1, 1, 0, 0),
-      calculate_2d_angle_deg(1, 0, 0, 0),
-      calculate_2d_angle_deg(0, -1, 0, 0),
-      calculate_2d_angle_deg(-1, 0, 0, 0),
-      calculate_2d_angle_deg(0, 1, 0, 0),
-      calculate_2d_angle_deg(0, 0, 0, 0)
-    ),
-    c(45, 90, 180, -90, 0, 0)
-  )
-})
-
-
-# -- calculate_2d_dist() ------------------------------------------------------
-test_that("calculate_2d_dist gives correct output", {
-  expect_equal(c(calculate_2d_dist(1, 1, 2, 1),
-                 calculate_2d_dist(2, 0)),
-               c(1, 2))
-})
-
-
-# -- timeseries_mean() ---------------------------------------------------------
-test_that("Mean of timeseries is calculated correctly", {
-  expect_equal(
-    timeseries_mean(1:5, 1:5),
-    3
-  )
-  expect_equal(
-    timeseries_mean(1:5, c(1, 2, 2.5, 4, 5)),
-    3.125
-  )
-})
-test_that("Mean of timeseries works with 1 element vector", {
-  expect_equal(
-    timeseries_mean(25.5, 1.0),
-    25.5
-  )
-})
-
-
-
-# -- eulunity2rot --------------------------------------------------------------
-test_that("eulunity2rot clockwise rotation by pi/2 about x-axis converts y into z",
-          {
-            expect_equal(as.vector(eulunity2rot(90, 0, 0) %*% c(0, 1, 0)), c(0, 0, 1))
-          })
-
-
-test_that("eulunity2rot clockwise rotation by pi/2 about y-axis converts z into x",
-          {
-            expect_equal(as.vector(eulunity2rot(0, 90, 0) %*% c(0, 0, 1)), c(1, 0, 0))
-
-          })
-
-test_that("eulunity2rot clockwise rotation by pi/2 about z-axis converts x into y",
-          {
-            expect_equal(as.vector(eulunity2rot(0, 0, 90) %*% c(1, 0, 0)), c(0, 1, 0))
-          })
-
-test_that("eulunity2rot gives correct outputs",
-          {
-            ## test compositions of basic rotations
-            # a simple composition
-            expect_equal(as.vector(eulunity2rot(90, 0, 90) %*% c(1, 0, 0)), c(0, 0, 1))
-            # a composition with two rotations that leave the rotated vector unchanged only when
-            # rotated in correct order
-            expect_equal(as.vector(eulunity2rot(90, 133, 39) %*% c(0, 0, 1)), c(0, -1, 0))
-          })
-
-# -- vec2rot() -----------------------------------------------------------------
-
-test_that("vec2rot gives correct output for norm vectors",
-          {
-            test_vec2rot <- function() {
-              x <- runif(3)
-              x <- x / norm(x, type = "2")
-              y <- runif(3)
-              y <- y / norm(y, type = "2")
-              R <- vec2rot(x, y)
-              yhat <- R %*% x
-              sum((yhat - y) ^ 2)
-            }
-
-            expect_equal(
-              c(
-                test_vec2rot(),
-                test_vec2rot(),
-                test_vec2rot(),
-                test_vec2rot(),
-                test_vec2rot()
-              ),
-              rep(0, 5)
-            )
-          })
-
-# -- angle_between -------------------------------------------------------------
-test_that("angle_between_vec gives correct outputs",
-          {
-            expect_equal(angle_between(c(1, 0, 0), c(0, 1, 0)), 90)
-            expect_equal(angle_between(c(1, 0, 0), c(1, 1, 0)), 45)
-          })
-
-# -- rot2centralangle ----------------------------------------------------------
-test_that("rot2centralangle gives correct outputs", {
-  # exchange x and y axis rotates x axis by 90 deg
-  expect_equal(rot2centralangle(diag(3),
-                                matrix(
-                                  c(0, 1, 0, 1, 0, 0, 0, 0, 1), ncol = 3, byrow = T
-                                ),
-                                c(1, 0, 0)),
-               90)
-  # exchange x and y axis rotates z axis by 0 deg
-  expect_equal(rot2centralangle(diag(3),
-                                matrix(
-                                  c(0, 1, 0, 1, 0, 0, 0, 0, 1), ncol = 3, byrow = T
-                                ),
-                                c(0, 0, 1)),
-               0)
-  # output does not depend on magnitude of direction vector
-  expect_equal(rot2centralangle(diag(3),
-                                matrix(
-                                  c(0, 1, 0, 1, 0, 0, 0, 0, 1), ncol = 3, byrow = T
-                                ),
-                                c(1, 0, 0)),
-               rot2centralangle(diag(3),
-                                matrix(
-                                  c(0, 1, 0, 1, 0, 0, 0, 0, 1), ncol = 3, byrow = T
-                                ),
-                                c(3, 0, 0))
-  )
-
-  # Rotation by 180 degrees around the z axis
-  expect_equal(rot2centralangle(diag(3),
-                                matrix(c(-1, 0, 0, 0, -1, 0, 0, 0, 1), ncol = 3, byrow = TRUE),
-                                c(1, 0, 0)),
-               180)
-
-  # Output does not depend on magnitude of direction vector
-  expect_equal(rot2centralangle(diag(3),
-                                matrix(c(0, 1, 0, 1, 0, 0, 0, 0, 1), ncol = 3, byrow = TRUE),
-                                c(1, 0, 0)),
-               rot2centralangle(diag(3),
-                                matrix(c(0, 1, 0, 1, 0, 0, 0, 0, 1), ncol = 3, byrow = TRUE),
-                                c(3, 0, 0)))
-
-  # Negative rotation angle
-  expect_equal(rot2centralangle(diag(3),
-                                matrix(c(0, -1, 0, -1, 0, 0, 0, 0, 1), ncol = 3, byrow = TRUE),
-                                c(1, 0, 0)),
-               90)
-
-})
-
-# -- proj_vec2vec --------------------------------------------------------------
-test_that("proj_vec2vec gives correct outputs", {
-  test_proj_vec2vec <- function(v1, v2, v3) {
-    norm(proj_vec2vec(v1, v2) - v3, type = "2")
-  }
-  expect_equal(c(
-    test_proj_vec2vec(c(1, 1, 1), c(1, 0, 0), c(1, 0, 0)),
-    test_proj_vec2vec(c(2, 2, 2), c(0, 1, 0), c(0, 2, 0)),
-    test_proj_vec2vec(c(2, 2, 2), c(0, 2, 0), c(0, 2, 0)),
-    test_proj_vec2vec(c(1, 0, 0), c(1, 1, 0), c(.5, .5, 0)),
-    test_proj_vec2vec(c(9, 9), c(1, 0), c(9, 0))
-  ),
-  c(0, 0, 0, 0, 0))
-})
-
-# -- proj_vec2plane ------------------------------------------------------------
-test_that("proj_vec2plane gives correct outputs", {
-  test_proj_vec2plane <- function(v1, v2, v3, v4) {
-    norm(proj_vec2plane(v1, v2, v3) - v4, type = "2")
-  }
-  expect_equal(c(
-    test_proj_vec2plane(c(1, 1, 1), c(1, 0, 0), c(0, 1, 0), c(1, 1, 0)),
-    test_proj_vec2plane(c(2, 2, 2), c(1, 0, 0), c(0, 1, 0), c(2, 2, 0)),
-    test_proj_vec2plane(c(3, 1, 1), c(0, 1, 0), c(0, 0, 1), c(0, 1, 1))
-  ),
-  c(0, 0, 0))
-})
-
-# -- orthdist ------------------------------------------------------------------
-test_that("orthdist gives correct outputs", {
-  expect_equal(c(orthdist(c(1, 0), c(0, 0), c(0.5, 100)),
-                 orthdist(c(1, 0), c(0, 0), c(0.3, 100)),
-                 orthdist(c(1, 0, 0), c(0, 0, 0), c(0.5, 100, 100))),
-               c(0.5, 0.7, 0.5))
-})
-
-# -- cart2sph ------------------------------------------------------------------
-test_that("cart2sph gives the same output as pracma", {
-  v <- runif(3)
-  expect_equal(norm(cart2sph(v) - pracma::cart2sph(v), type = "2"), 0)
-})
-
-# -- create_resampling_index ---------------------------------------------------
-test_that("create_resampling_index gives correct output", {
-  expect_equal(sum(
-    create_resampling_index(1, 10) - seq(from = .1, to = 1, by = .1)
-  ), 0)
-  expect_equal(sum(
-    create_resampling_index(2, 10) - seq(from = .1, to = 2, by = .1)
-  ), 0)
-})
-
-# -- find_min ------------------------------------------------------------------
-test_that("find_min works correctly", {
-  expect_equal(find_min(c(1, 2, 3)), 1)
-  expect_equal(find_min(c(NA, NA, NA)), NA_real_)
-  expect_equal(find_min(numeric(0)), NA_real_)
-  expect_equal(find_min(c(NA, 5, 3)), 3)
-  expect_equal(find_min(c(-1, -5, -3)), -5)
-})
-
-# -- find_argmin ---------------------------------------------------------------
-test_that("find_argmin works correctly", {
-  expect_equal(find_argmin(c(3, 1, 2)), 2)
-  expect_equal(find_argmin(c(NA, NA, NA)), NA_real_)
-  expect_equal(find_argmin(numeric(0)), NA_real_)
-  expect_equal(find_argmin(c(NA, 5, 3)), 3)
-  expect_equal(find_argmin(c(-3, -1, -5)), 3)
-})
-
-# ------------------------------------------------------------------------------
 # --- processing_movement functions --------------------------------------------
 # ------------------------------------------------------------------------------
 
@@ -260,148 +18,868 @@ df <- function(pos, rot, time = 0) {
 # -- guess_move_at_post --------------------------------------------------------
 
 
-test_that("guess_move_at_pos works correctly",
-          {
-            move_from_origin <- dplyr::bind_rows(df(
-              time = seq(from = 0, to = 1, by = .1),
-              pos = c(0, 0, 0),
-              rot = c(0, 0, 0)
-            ),
-            df(
-              time = seq(from = 1.1, to = 2, by = .1),
-              pos = c(0, 0, 10),
-              rot = c(0, 0, 0)
-            ))
-            move_to_origin   <- dplyr::bind_rows(df(
-              time = seq(from = 0, to = 1, by = .1),
-              pos = c(0, 0, 10),
-              rot = c(0, 0, 0)
-            ),
-            df(
-              time = seq(from = 1.1, to = 2, by = .1),
-              pos = c(0, 0, 0),
-              rot = c(0, 0, 0)
-            ))
+test_that("guess_move_at_pos works correctly", {
+  move_from_origin <- dplyr::bind_rows(
+    df(
+      time = seq(from = 0, to = 1, by = .1),
+      pos = c(0, 0, 0),
+      rot = c(0, 0, 0)
+    ),
+    df(
+      time = seq(from = 1.1, to = 2, by = .1),
+      pos = c(0, 0, 10),
+      rot = c(0, 0, 0)
+    )
+  )
+  move_to_origin <- dplyr::bind_rows(
+    df(
+      time = seq(from = 0, to = 1, by = .1),
+      pos = c(0, 0, 10),
+      rot = c(0, 0, 0)
+    ),
+    df(
+      time = seq(from = 1.1, to = 2, by = .1),
+      pos = c(0, 0, 0),
+      rot = c(0, 0, 0)
+    )
+  )
 
-            move_from_origin_lat <- move_from_origin
-            move_to_origin_lat   <- move_to_origin
+  move_from_origin_lat <- move_from_origin
+  move_to_origin_lat <- move_to_origin
 
-            move_from_origin_lat$pos_x <- 10
-            move_to_origin_lat$pos_x   <- 10
+  move_from_origin_lat$pos_x <- 10
+  move_to_origin_lat$pos_x <- 10
 
-            pos_origin <- list(pos_x = 0,
-                               pos_y = 0,
-                               pos_z = 0)
-            pos_forward <- list(pos_x = 0,
-                                pos_y = 0,
-                                pos_z = 10)
+  pos_origin <- list(
+    pos_x = 0,
+    pos_y = 0,
+    pos_z = 0
+  )
+  pos_forward <- list(
+    pos_x = 0,
+    pos_y = 0,
+    pos_z = 10
+  )
 
-            # moving from origin
-            expect_equal(
-              guess_move_at_pos(
-                pos = pos_origin,
-                ref_pos = NULL,
-                ref_movement = move_from_origin,
-                max_dist = 0.5,
-                min_time = 0,
-                max_time = 100,
-                method = "from"
-              ),
-              1.1
-            )
-            # moving from origin when not origin should return NA
-            expect_equal(
-              guess_move_at_pos(
-                pos = pos_origin,
-                ref_pos = NULL,
-                ref_movement = move_to_origin,
-                max_dist = 0.5,
-                min_time = 0,
-                max_time = 100,
-                method = "from"
-              ),
-              NA_real_
-            )
-            # moving to origin
-            expect_equal(
-              guess_move_at_pos(
-                pos = pos_origin,
-                ref_pos = NULL,
-                ref_movement = move_to_origin,
-                max_dist = 0.5,
-                min_time = 0,
-                max_time = 100,
-                method = "to"
-              ),
-              1.1
-            )
-            # moving to origin when at origin should return NA
-            expect_equal(
-              guess_move_at_pos(
-                pos = pos_origin,
-                ref_pos = NULL,
-                ref_movement = move_from_origin,
-                max_dist = 0.5,
-                min_time = 0,
-                max_time = 100,
-                method = "to"
-              ),
-              NA_real_
-            )
-            # laterally moving from origin
-            expect_equal(
-              guess_move_at_pos(
-                pos = pos_origin,
-                ref_pos = pos_forward,
-                ref_movement = move_from_origin_lat,
-                max_dist = 0.5,
-                min_time = 0,
-                max_time = 100,
-                method = "from"
-              ),
-              1.1
-            )
-            # laterally moving from origin when not at origin should return NA
-            expect_equal(
-              guess_move_at_pos(
-                pos = pos_origin,
-                ref_pos = pos_forward,
-                ref_movement = move_to_origin_lat,
-                max_dist = 0.5,
-                min_time = 0,
-                max_time = 100,
-                method = "from"
-              ),
-              NA_real_
-            )
-            # laterally  moving to origin
-            expect_equal(
-              guess_move_at_pos(
-                pos = pos_origin,
-                ref_pos = pos_forward,
-                ref_movement = move_to_origin_lat,
-                max_dist = 0.5,
-                min_time = 0,
-                max_time = 100,
-                method = "to"
-              ),
-              1.1
-            )
-            # laterally moving to origin when at origin should return NA
-            expect_equal(
-              guess_move_at_pos(
-                pos = pos_origin,
-                ref_pos = pos_forward,
-                ref_movement = move_from_origin_lat,
-                max_dist = 0.5,
-                min_time = 0,
-                max_time = 100,
-                method = "to"
-              ),
-              NA_real_
-            )
-          })
+  # moving from origin
+  expect_equal(
+    guess_move_at_pos(
+      pos = pos_origin,
+      ref_pos = NULL,
+      ref_movement = move_from_origin,
+      max_dist = 0.5,
+      min_time = 0,
+      max_time = 100,
+      method = "from"
+    ),
+    1.1
+  )
+  # moving from origin when not origin should return NA
+  expect_equal(
+    guess_move_at_pos(
+      pos = pos_origin,
+      ref_pos = NULL,
+      ref_movement = move_to_origin,
+      max_dist = 0.5,
+      min_time = 0,
+      max_time = 100,
+      method = "from"
+    ),
+    NA_real_
+  )
+  # moving to origin
+  expect_equal(
+    guess_move_at_pos(
+      pos = pos_origin,
+      ref_pos = NULL,
+      ref_movement = move_to_origin,
+      max_dist = 0.5,
+      min_time = 0,
+      max_time = 100,
+      method = "to"
+    ),
+    1.1
+  )
+  # moving to origin when at origin should return NA
+  expect_equal(
+    guess_move_at_pos(
+      pos = pos_origin,
+      ref_pos = NULL,
+      ref_movement = move_from_origin,
+      max_dist = 0.5,
+      min_time = 0,
+      max_time = 100,
+      method = "to"
+    ),
+    NA_real_
+  )
+  # laterally moving from origin
+  expect_equal(
+    guess_move_at_pos(
+      pos = pos_origin,
+      ref_pos = pos_forward,
+      ref_movement = move_from_origin_lat,
+      max_dist = 0.5,
+      min_time = 0,
+      max_time = 100,
+      method = "from"
+    ),
+    1.1
+  )
+  # laterally moving from origin when not at origin should return NA
+  expect_equal(
+    guess_move_at_pos(
+      pos = pos_origin,
+      ref_pos = pos_forward,
+      ref_movement = move_to_origin_lat,
+      max_dist = 0.5,
+      min_time = 0,
+      max_time = 100,
+      method = "from"
+    ),
+    NA_real_
+  )
+  # laterally  moving to origin
+  expect_equal(
+    guess_move_at_pos(
+      pos = pos_origin,
+      ref_pos = pos_forward,
+      ref_movement = move_to_origin_lat,
+      max_dist = 0.5,
+      min_time = 0,
+      max_time = 100,
+      method = "to"
+    ),
+    1.1
+  )
+  # laterally moving to origin when at origin should return NA
+  expect_equal(
+    guess_move_at_pos(
+      pos = pos_origin,
+      ref_pos = pos_forward,
+      ref_movement = move_from_origin_lat,
+      max_dist = 0.5,
+      min_time = 0,
+      max_time = 100,
+      method = "to"
+    ),
+    NA_real_
+  )
+})
 
+
+
+# -- reorient_movement ----------------------------------------------------
+
+test_that("reorient_movement correctly applies 90-degree rotation", {
+  # mock movement
+  df <- tibble(
+    pos_x = 1,
+    pos_y = 0,
+    pos_z = 0
+  )
+  
+  #Rotation is anti-clockwise viewed from positive y in unity left handed system
+  R <- matrix(c( 0, 0, -1, 
+                 0, 1, 0,
+                 1, 0, 0),
+              ncol = 3,
+              byrow = TRUE)
+
+  # apply world unity
+  result <- reorient_movement(
+    df = df,
+    R
+  )
+
+  # expected: +X becomes +Z
+  expect_equal(result$pos_x, 0)
+  expect_equal(result$pos_y, 0)
+  expect_equal(result$pos_z, 1)
+})
+
+test_that("reorient_movement leaves coordinates unchanged with default transformation", {
+  df <- tibble(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  result <- reorient_movement(df = df)
+
+  expect_equal(result$pos_x, 1)
+  expect_equal(result$pos_y, 2)
+  expect_equal(result$pos_z, 3)
+})
+
+
+test_that("reorient_movement correctly rotates all three axes", {
+  df <- tibble(
+    pos_x = c(1, 0, 0),
+    pos_y = c(0, 1, 0),
+    pos_z = c(0, 0, 1)
+  )
+
+  R <- matrix(
+    c(0, 0, -1,
+      0, 1,  0,
+      1, 0,  0),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  result <- reorient_movement(
+    df = df,
+    R = R
+  )
+
+  # +X -> +Z
+  expect_equal(
+    c(result$pos_x[1], result$pos_y[1], result$pos_z[1]),
+    c(0, 0, 1)
+  )
+
+  # +Y -> +Y
+  expect_equal(
+    c(result$pos_x[2], result$pos_y[2], result$pos_z[2]),
+    c(0, 1, 0)
+  )
+
+  # +Z -> -X
+  expect_equal(
+    c(result$pos_x[3], result$pos_y[3], result$pos_z[3]),
+    c(-1, 0, 0)
+  )
+})
+
+
+test_that("reorient_movement correctly applies translation", {
+  df <- tibble(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  offset <- c(10, 20, 30)
+
+  result <- reorient_movement(
+    df = df,
+    offset = offset
+  )
+
+  expect_equal(result$pos_x, 11)
+  expect_equal(result$pos_y, 22)
+  expect_equal(result$pos_z, 33)
+})
+
+
+test_that("reorient_movement applies translation after rotation", {
+  df <- tibble(
+    pos_x = 1,
+    pos_y = 0,
+    pos_z = 0
+  )
+
+  R <- matrix(
+    c(0, 0, -1,
+      0, 1,  0,
+      1, 0,  0),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  offset <- c(10, 20, 30)
+
+  result <- reorient_movement(
+    df = df,
+    R = R,
+    offset = offset
+  )
+
+  # First: +X -> +Z = (0, 0, 1)
+  # Then: add offset = (10, 20, 31)
+  expect_equal(result$pos_x, 10)
+  expect_equal(result$pos_y, 20)
+  expect_equal(result$pos_z, 31)
+})
+
+
+test_that("reorient_movement handles negative coordinates", {
+  df <- tibble(
+    pos_x = -1,
+    pos_y = -2,
+    pos_z = -3
+  )
+
+  result <- reorient_movement(
+    df = df,
+    offset = c(10, 20, 30)
+  )
+
+  expect_equal(result$pos_x, 9)
+  expect_equal(result$pos_y, 18)
+  expect_equal(result$pos_z, 27)
+})
+
+
+test_that("reorient_movement handles zero coordinates", {
+  df <- tibble(
+    pos_x = 0,
+    pos_y = 0,
+    pos_z = 0
+  )
+
+  result <- reorient_movement(
+    df = df,
+    offset = c(10, 20, 30)
+  )
+
+  expect_equal(result$pos_x, 10)
+  expect_equal(result$pos_y, 20)
+  expect_equal(result$pos_z, 30)
+})
+
+
+test_that("reorient_movement handles multiple movement rows", {
+  df <- tibble(
+    pos_x = c(1, 2, 3),
+    pos_y = c(4, 5, 6),
+    pos_z = c(7, 8, 9)
+  )
+
+  result <- reorient_movement(
+    df = df,
+    offset = c(10, 20, 30)
+  )
+
+  expect_equal(result$pos_x, c(11, 12, 13))
+  expect_equal(result$pos_y, c(24, 25, 26))
+  expect_equal(result$pos_z, c(37, 38, 39))
+})
+
+
+test_that("reorient_movement preserves non-position columns", {
+  df <- tibble(
+    timestamp = c(1, 2, 3),
+    pos_x = c(1, 2, 3),
+    pos_y = c(4, 5, 6),
+    pos_z = c(7, 8, 9),
+    velocity = c(10, 11, 12)
+  )
+
+  result <- reorient_movement(
+    df = df,
+    offset = c(10, 20, 30)
+  )
+
+  expect_equal(result$timestamp, df$timestamp)
+  expect_equal(result$velocity, df$velocity)
+
+  expect_equal(result$pos_x, c(11, 12, 13))
+  expect_equal(result$pos_y, c(24, 25, 26))
+  expect_equal(result$pos_z, c(37, 38, 39))
+})
+
+
+test_that("reorient_movement preserves row count", {
+  df <- tibble(
+    pos_x = 1:10,
+    pos_y = 11:20,
+    pos_z = 21:30
+  )
+
+  result <- reorient_movement(df = df)
+
+  expect_equal(nrow(result), nrow(df))
+})
+
+
+test_that("reorient_movement preserves column names", {
+  df <- tibble(
+    time = 1,
+    pos_x = 2,
+    pos_y = 3,
+    pos_z = 4,
+    other = 5
+  )
+
+  result <- reorient_movement(df = df)
+
+  expect_equal(names(result), names(df))
+})
+
+test_that("reorient_movement accepts uppercase coordinate columns", {
+  df <- tibble(
+    pos_X = 1,
+    pos_Y = 2,
+    pos_Z = 3
+  )
+
+  result <- reorient_movement(
+    df = df,
+    offset = c(10, 20, 30)
+  )
+
+  expect_equal(result$pos_X, 11)
+  expect_equal(result$pos_Y, 22)
+  expect_equal(result$pos_Z, 33)
+})
+
+
+test_that("reorient_movement correctly applies a 180-degree rotation around y", {
+  df <- tibble(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  R <- matrix(
+    c(-1,  0,  0,
+       0,  1,  0,
+       0,  0, -1),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  result <- reorient_movement(
+    df = df,
+    R = R
+  )
+
+  expect_equal(result$pos_x, -1)
+  expect_equal(result$pos_y,  2)
+  expect_equal(result$pos_z, -3)
+})
+
+
+test_that("reorient_movement correctly applies a 90-degree rotation around x", {
+  df <- tibble(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  R <- matrix(
+    c(1, 0,  0,
+      0, 0, -1,
+      0, 1,  0),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  result <- reorient_movement(
+    df = df,
+    R = R
+  )
+
+  # (1, 2, 3) -> (1, -3, 2)
+  expect_equal(result$pos_x,  1)
+  expect_equal(result$pos_y, -3)
+  expect_equal(result$pos_z,  2)
+})
+
+
+test_that("reorient_movement correctly applies a 90-degree rotation around z", {
+  df <- tibble(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  R <- matrix(
+    c(0, -1, 0,
+      1,  0, 0,
+      0,  0, 1),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  result <- reorient_movement(
+    df = df,
+    R = R
+  )
+
+  # (1, 2, 3) -> (-2, 1, 3)
+  expect_equal(result$pos_x, -2)
+  expect_equal(result$pos_y,  1)
+  expect_equal(result$pos_z,  3)
+})
+
+
+test_that("reorient_movement identity rotation behaves like no rotation", {
+  df <- tibble(
+    pos_x = c(1, -2, 3),
+    pos_y = c(4,  5, -6),
+    pos_z = c(7, -8, 9)
+  )
+
+  R <- diag(3)
+
+  result <- reorient_movement(
+    df = df,
+    R = R
+  )
+
+  expect_equal(result$pos_x, df$pos_x)
+  expect_equal(result$pos_y, df$pos_y)
+  expect_equal(result$pos_z, df$pos_z)
+})
+
+
+test_that("reorient_movement zero offset behaves like rotation only", {
+  df <- tibble(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  R <- matrix(
+    c(-1,  0,  0,
+       0,  1,  0,
+       0,  0, -1),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  result_without_offset <- reorient_movement(
+    df = df,
+    R = R
+  )
+
+  result_with_zero_offset <- reorient_movement(
+    df = df,
+    R = R,
+    offset = c(0, 0, 0)
+  )
+
+  expect_equal(
+    result_with_zero_offset,
+    result_without_offset
+  )
+})
+
+
+test_that("reorient_movement does not modify the input data frame", {
+  df <- tibble(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  df_original <- df
+
+  result <- reorient_movement(
+    df = df,
+    offset = c(10, 20, 30)
+  )
+
+  expect_equal(df, df_original)
+
+  # Ensure the result was actually transformed
+  expect_equal(result$pos_x, 11)
+  expect_equal(result$pos_y, 22)
+  expect_equal(result$pos_z, 33)
+})
+
+
+test_that("reorient_movement applies rotation consistently to arbitrary points", {
+  df <- tibble(
+    pos_x = c(1, 2, -3, 0),
+    pos_y = c(2, -1, 4, 0),
+    pos_z = c(3, 5, -2, 0)
+  )
+
+  R <- matrix(
+    c(0, 0, -1,
+      0, 1,  0,
+      1, 0,  0),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  result <- reorient_movement(
+    df = df,
+    R = R
+  )
+
+  expected <- tibble(
+    pos_x = c(-3, -5,  2, 0),
+    pos_y = c( 2, -1,  4, 0),
+    pos_z = c( 1,  2, -3, 0)
+  )
+
+  expect_equal(
+    result[c("pos_x", "pos_y", "pos_z")],
+    expected
+  )
+})
+
+
+test_that("reorient_movement validates rotation matrix dimensions", {
+  df <- tibble(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  expect_warning(
+    reorient_movement(
+      df = df,
+      R = diag(2)
+    )
+  )
+
+  expect_warning(
+    reorient_movement(
+      df = df,
+      R = matrix(1, nrow = 2, ncol = 3)
+    )
+  )
+})
+
+
+test_that("reorient_movement validates offset length", {
+  df <- tibble(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  expect_error(
+    reorient_movement(
+      df = df,
+      offset = c(1, 2)
+    )
+  )
+
+  expect_error(
+    reorient_movement(
+      df = df,
+      offset = c(1, 2, 3, 4)
+    )
+  )
+})
+
+
+test_that("reorient_movement applies rotation before translation", {
+  df <- tibble(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  # 180 degree rotation around y
+  R <- matrix(
+    c(-1, 0,  0,
+       0, 1,  0,
+       0, 0, -1),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  offset <- c(10, 20, 30)
+
+  result <- reorient_movement(
+    df = df,
+    R = R,
+    offset = offset
+  )
+
+  # Rotation:
+  # (1, 2, 3) -> (-1, 2, -3)
+  #
+  # Translation:
+  # (-1, 2, -3) + (10, 20, 30)
+  # -> (9, 22, 27)
+  expect_equal(result$pos_x, 9)
+  expect_equal(result$pos_y, 22)
+  expect_equal(result$pos_z, 27)
+})
+
+test_that("reorient_movement correctly rotates a position list", {
+  df <- list(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  # 90-degree rotation around y
+  # +X -> +Z and +Z -> -X
+  R <- matrix(
+    c(0, 0, -1,
+      0, 1,  0,
+      1, 0,  0),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  result <- reorient_movement(
+    df = df,
+    R = R
+  )
+
+  # (1, 2, 3) -> (-3, 2, 1)
+  expect_equal(result$pos_x, -3)
+  expect_equal(result$pos_y,  2)
+  expect_equal(result$pos_z,  1)
+})
+
+
+test_that("reorient_movement correctly translates a position list", {
+  df <- list(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  offset <- c(10, 20, 30)
+
+  result <- reorient_movement(
+    df = df,
+    offset = offset
+  )
+
+  # (1, 2, 3) + (10, 20, 30) -> (11, 22, 33)
+  expect_equal(result$pos_x, 11)
+  expect_equal(result$pos_y, 22)
+  expect_equal(result$pos_z, 33)
+})
+
+
+test_that("reorient_movement rotates and then translates a position list", {
+  df <- list(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  # 90-degree rotation around y
+  R <- matrix(
+    c(0, 0, -1,
+      0, 1,  0,
+      1, 0,  0),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  offset <- c(10, 20, 30)
+
+  result <- reorient_movement(
+    df = df,
+    R = R,
+    offset = offset
+  )
+
+  # First rotate:
+  # (1, 2, 3) -> (-3, 2, 1)
+  #
+  # Then translate:
+  # (-3, 2, 1) + (10, 20, 30)
+  # -> (7, 22, 31)
+  expect_equal(result$pos_x, 7)
+  expect_equal(result$pos_y, 22)
+  expect_equal(result$pos_z, 31)
+})
+
+
+test_that("reorient_movement correctly handles negative position list values", {
+  df <- list(
+    pos_x = -1,
+    pos_y = -2,
+    pos_z = -3
+  )
+
+  R <- matrix(
+    c(0, 0, -1,
+      0, 1,  0,
+      1, 0,  0),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  offset <- c(10, 20, 30)
+
+  result <- reorient_movement(
+    df = df,
+    R = R,
+    offset = offset
+  )
+
+  # Rotate:
+  # (-1, -2, -3) -> (3, -2, -1)
+  #
+  # Translate:
+  # (3, -2, -1) + (10, 20, 30)
+  # -> (13, 18, 29)
+  expect_equal(result$pos_x, 13)
+  expect_equal(result$pos_y, 18)
+  expect_equal(result$pos_z, 29)
+})
+
+
+test_that("reorient_movement correctly applies a 180-degree rotation to a position list", {
+  df <- list(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  # 180-degree rotation around y
+  R <- matrix(
+    c(-1, 0,  0,
+       0, 1,  0,
+       0, 0, -1),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  result <- reorient_movement(
+    df = df,
+    R = R
+  )
+
+  # (1, 2, 3) -> (-1, 2, -3)
+  expect_equal(result$pos_x, -1)
+  expect_equal(result$pos_y,  2)
+  expect_equal(result$pos_z, -3)
+})
+
+
+test_that("reorient_movement handles a position list with identity rotation and translation", {
+  df <- list(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  R <- diag(3)
+  offset <- c(-5, 10, -15)
+
+  result <- reorient_movement(
+    df = df,
+    R = R,
+    offset = offset
+  )
+
+  expect_equal(result$pos_x, -4)
+  expect_equal(result$pos_y,  12)
+  expect_equal(result$pos_z, -12)
+})
+
+
+test_that("reorient_movement preserves a position list with identity transformation", {
+  df <- list(
+    pos_x = 1,
+    pos_y = 2,
+    pos_z = 3
+  )
+
+  result <- reorient_movement(df = df)
+
+  expect_equal(result$pos_x, 1)
+  expect_equal(result$pos_y, 2)
+  expect_equal(result$pos_z, 3)
+})
 
 # ------------------------------------------------------------------------------
 # --- add_movement functions ---------------------------------------------------
@@ -673,23 +1151,6 @@ test_that("add_gaze_elevation adds no values to z axis", {
 
 # test for create_resampling_index
 
-# ------------------------------------------------------------------------------
-# --- extract functions -------------------------------------------------------
-# ------------------------------------------------------------------------------
-
-# -- extract_duration ----------------------------------------------------------
-
-test_that("extract_duration correctly extracts duration", {
-
-  newdf <- df(pos = c(0, 0, 0), rot = c(0, 0, 0), time = seq(from = 0, to = 10, by = 0.1))
-  # z rotation has no impact on gaze elevation
-  expect_equal(
-    newdf %>%
-      extract_recording_duration(),
-    10
-  )
-
-})
 
 # ------------------------------------------------------------------------------
 # --- scenario functions -------------------------------------------------------
@@ -759,18 +1220,18 @@ test_that("identify_na_columns identifies correct columns", {
   )
 
   # Test default behavior
-  expect_equal(identify_na_columns(df), c("a", "b"))
+  expect_equal(identify_na_columns(df, print_output = FALSE), c("a", "b"))
 
   # Test with return_counts = TRUE
-  expect_equal(identify_na_columns(df, return_counts = TRUE), c(a = 1, b = 1))
+  expect_equal(identify_na_columns(df, print_output = FALSE, return_counts = TRUE), c(a = 1, b = 1))
 
   # Test with no NAs
   df_no_na <- data.frame(a = 1:3, b = 4:6)
-  expect_equal(identify_na_columns(df_no_na), character(0))
+  expect_equal(identify_na_columns(df_no_na, print_output = FALSE), character(0))
 
   # Test with empty data frame
   df_empty <- data.frame()
-  expect_equal(identify_na_columns(df_empty), character(0))
+  expect_equal(identify_na_columns(df_empty, print_output = FALSE), character(0))
 
   # Test with non-data frame input
   expect_error(identify_na_columns(1:10), "Input 'data' must be a data frame or tibble.")
@@ -832,3 +1293,5 @@ test_that("missing sublists become NA", {
   expect_true(is.na(out$eul_x))
   expect_equal(out$pos_y, 2)
 })
+
+# -- reorient_movement2unity_cols ----------------------------------------------------

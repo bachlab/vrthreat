@@ -6,7 +6,8 @@
 \usage{
 summarise_movement_cols(
   df,
-  .cols = tidyselect::ends_with("_movement_data_0") & !(tidyselect::starts_with("valid")),
+  .cols = (tidyselect::ends_with("_movement_data_0") |
+    tidyselect::ends_with("_eye_tracking_data_0")) & !(tidyselect::starts_with("valid")),
   by = "time"
 )
 }
@@ -14,15 +15,15 @@ summarise_movement_cols(
 \item{df}{A trial results data frame.}
 
 \item{.cols}{Columns containing movement dataframes
-(Default: all movement data).}
+(Default: all movement and eye tracking data).}
 
-\item{by}{Time stamp column, default is `time`}
+\item{by}{Time stamp column, default is \code{time}}
 }
 \value{
 The same data frame with old movement data columns replaced
 }
 \description{
-Convenient wrapper around `summarise_movement`. For provided columns,
+Convenient wrapper around \code{summarise_movement}. For provided columns,
 summarises movement data frames and returns the same data frame with unique
-time stamp values and a new column `n` to indicate duplicated time stamps.
+time stamp values and a new column \code{n} to indicate duplicated time stamps.
 }

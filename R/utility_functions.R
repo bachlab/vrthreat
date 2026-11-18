@@ -187,6 +187,74 @@ find_log_message <- function(df, messages, .colnames) {
 
 }
 
+#' Format a report list as human-readable text
+#'
+#' Converts a named list into a formatted report. Named elements are used
+#' as section/field labels, while vectors are formatted as lists.
+#'
+#' @param report A named list containing report details.
+#' @param title Optional report title.
+#'
+#' @returns A character string containing the formatted report.
+#'
+#' @keywords internal
+format_report <- function(report, title = "Public Release Preparation Report") {
+
+  # Convert snake_case names to readable labels
+  format_name <- function(x) {tools::toTitleCase(stringr::str_replace_all(x, "_", " "))}
+
+  # Format individual values
+  format_value <- function(x) {
+    if (length(x) == 0) {
+      return("None")
+    }
+
+    if (inherits(x, "POSIXt")) {
+      return(format(x, "%Y-%m-%d %H:%M:%S"))
+    }
+
+    if (length(x) == 1) {
+      return(as.character(x))
+    }
+
+    paste(x, collapse = ", ")
+  }
+
+  lines <- c(
+    paste0("=== ", title, " ==="),
+    ""
+  )
+
+  for (name in names(report)) {
+
+    value <- report[[name]]
+    label <- format_name(name)
+
+    if (length(value) == 0) {
+      lines <- c(
+        lines,
+        paste0(label, ": None")
+      )
+
+    } else if (length(value) == 1 || inherits(value, "POSIXt")) {
+      lines <- c(
+        lines,
+        paste0(label, ": ", format_value(value))
+      )
+
+    } else {
+      lines <- c(
+        lines,
+        paste0(label, " (", length(value), "):"),
+        paste0("  - ", value),
+        ""
+      )
+    }
+  }
+
+  paste(lines, collapse = "\n")
+}
+
 #' Load and Optionally Clean Trial Results
 #'
 #' This function loads trial results from a specified file and optionally cleans the data.
@@ -302,7 +370,8 @@ identify_na_columns <- function(data, print_output = TRUE, return_counts = FALSE
   }
 
   if (ncol(data) == 0) {
-    message("The data frame has no columns.")
+    if(print_output)
+      message("The data frame has no columns.")
     return(character(0))
   }
 

@@ -2,15 +2,15 @@
 % Please edit documentation in R/extract_movement_functions.R
 \name{extract_fruit_task}
 \alias{extract_fruit_task}
-\title{Extract fruit picking between a `min_time` and `max_time`.
-You can supply timestamps to `min_time` and `max_time` (e.g timestamp of
+\title{Extract fruit picking between a \code{min_time} and \code{max_time}.
+You can supply timestamps to \code{min_time} and \code{max_time} (e.g timestamp of
 begin escape) to average over only a period. In this case, you can also
-retrieve the collection rate by setting `rate` to 1.}
+retrieve the collection rate by setting \code{rate} to 1.}
 \usage{
 extract_fruit_task(df, min_time = 0, max_time = Inf, method = "sum")
 }
 \arguments{
-\item{df}{A fruit collection data frame. Expected columns are `time` and `event`.}
+\item{df}{A fruit collection data frame. Expected columns are \code{time} and \code{event}.}
 
 \item{min_time}{minimum time in s (default trial start)}
 
@@ -19,8 +19,8 @@ extract_fruit_task(df, min_time = 0, max_time = Inf, method = "sum")
 \item{method}{whether to extract sum (default) or rate}
 }
 \value{
-Sum of fruits or average of fruits picked per second, between `min_time` and
-  `max_time`.
+Sum of fruits or average of fruits picked per second, between \code{min_time} and
+\code{max_time}.
 }
 \description{
 NOTE: the fruit collection data frames contain no information on when

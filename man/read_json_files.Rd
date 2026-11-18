@@ -9,14 +9,15 @@ read_json_files(data, .cols = ends_with("_json_location_0"), ...)
 \arguments{
 \item{data}{A dataframe of trial results}
 
-\item{.cols}{A tidyselect specification of columns (e.g. `c(col1, col2)`).}
+\item{.cols}{A tidyselect specification of columns (e.g. \code{c(col1, col2)}).}
 
-\item{...}{Additional arguments passed to `read_json`.
-Default are columns that end with `_json_location_0`}
+\item{...}{Additional arguments passed to \code{read_json}.
+Default are columns that end with \verb{_json_location_0}}
 }
 \description{
 Read json files associated with trials from paths stored in supplied
-columns. Expects absolute paths, use `update_file_pointers` to
+columns. Expects absolute paths, use \code{update_file_pointers} to
 update them if necessary. Function uses
-`jsonlite::read_json` to read files.
+\code{jsonlite::read_json} to read files. Corrupted files are ignored, and a list
+of corrupted files is printed at the end.
 }

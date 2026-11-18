@@ -7,8 +7,8 @@
 add_rot(df, direction = c(0, 0, 1))
 }
 \arguments{
-\item{df}{Movement or eye tracker or combined/resampled data frame. Expects either columns `rot_x`,
-`rot_y`, `rot_z`, or columns `gaze_direction_x`, `gaze_direction_y`, `gaze_direction_z`}
+\item{df}{Movement or eye tracker or combined/resampled data frame. Expects either columns \code{rot_x},
+\code{rot_y}, \code{rot_z}, or columns \code{gaze_direction_x}, \code{gaze_direction_y}, \code{gaze_direction_z}}
 
 \item{direction}{Reference gaze direction. A single vector. Default: forward}
 }

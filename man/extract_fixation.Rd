@@ -2,29 +2,34 @@
 % Please edit documentation in R/extract_movement_functions.R
 \name{extract_fixation}
 \alias{extract_fixation}
-\title{Extract ratio of target fixation between a `min_time` and `max_time`.
-You can supply timestamps to `min_time` and `max_time` (e.g timestamp of
+\title{Extract ratio of target fixation between a \code{min_time} and \code{max_time}.
+You can supply timestamps to \code{min_time} and \code{max_time} (e.g timestamp of
 begin escape) to average over only a period, or use the entire duration of
 the provided data frame.}
 \usage{
-extract_fixation(df, target, min_time = min(df$time), max_time = max(df$time))
+extract_fixation(
+  df,
+  target,
+  min_time = min(df$time, na.rm = TRUE),
+  max_time = max(df$time, na.rm = TRUE)
+)
 }
 \arguments{
-\item{df}{Eye tracker data frame. Expected columns are `time` and `focus_object_raw`.}
+\item{df}{Eye tracker data frame. Expected columns are \code{time} and \code{focus_object_raw}.}
 
-\item{target}{Unity's internal target name (e.g. as returned by `find_unity_threat_name`)}
+\item{target}{Unity's internal target name (e.g. as returned by \link{find_unity_threat_name}}
 
 \item{min_time}{minimum time in s (default trial start)}
 
 \item{max_time}{maximum time in s (default trial end)}
 }
 \value{
-Ratio of target fixations (0-1), between `min_time` and
-  `max_time`.
+Ratio of target fixations (0-1), between \code{min_time} and
+\code{max_time}.
 }
 \description{
-Extract ratio of target fixation between a `min_time` and `max_time`.
-You can supply timestamps to `min_time` and `max_time` (e.g timestamp of
+Extract ratio of target fixation between a \code{min_time} and \code{max_time}.
+You can supply timestamps to \code{min_time} and \code{max_time} (e.g timestamp of
 begin escape) to average over only a period, or use the entire duration of
 the provided data frame.
 }

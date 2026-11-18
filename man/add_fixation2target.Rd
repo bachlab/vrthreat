@@ -7,17 +7,17 @@
 add_fixation2target(df, target, targetname = NULL)
 }
 \arguments{
-\item{df}{Eyetracker data frame. Expected column is `focus_object_raw`.}
+\item{df}{Eyetracker data frame. Expected column is \code{focus_object_raw}.}
 
 \item{target}{Unity's internal target name (e.g. as returned by
-`find_unity_threat_name`), or vector of target names}
+\code{find_unity_threat_name}), or vector of target names}
 
-\item{targetname}{Optional suffix for the new column name (default: `fixation`
+\item{targetname}{Optional suffix for the new column name (default: \code{fixation}
 without suffix)}
 }
 \value{
-Eyetracker data frame with new column `fixation` or
-`fixation_targetname` added
+Eyetracker data frame with new column \code{fixation} or
+\code{fixation_targetname} added
 }
 \description{
 Returns the same dataframe with new column indicating 0 (no fixation) and 1

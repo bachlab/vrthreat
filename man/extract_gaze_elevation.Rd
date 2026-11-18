@@ -2,20 +2,20 @@
 % Please edit documentation in R/extract_movement_functions.R
 \name{extract_gaze_elevation}
 \alias{extract_gaze_elevation}
-\title{Extract gaze elevation between a `min_time` and `max_time`.}
+\title{Extract gaze elevation between a \code{min_time} and \code{max_time}.}
 \usage{
 extract_gaze_elevation(
   df,
-  min_time = min(df$time),
-  max_time = max(df$time),
+  min_time = min(df$time, na.rm = TRUE),
+  max_time = max(df$time, na.rm = TRUE),
   samplingrate = NULL,
   direction = c(0, 0, 1)
 )
 }
 \arguments{
 \item{df}{A movement or eyetracker data frame. Expected columns are either
-`rot_x`, `rot_y`, `rot_z`, or `gaze_direction_x`, `gaze_direction_y`,
-`gaze_direction_z`}
+\code{rot_x}, \code{rot_y}, \code{rot_z}, or \code{gaze_direction_x}, \code{gaze_direction_y},
+\code{gaze_direction_z}}
 
 \item{min_time}{minimum time in s (default: trial start)}
 
@@ -26,11 +26,11 @@ extract_gaze_elevation(
 \item{direction}{Gaze reference vector (default: forward)}
 }
 \value{
-Average gaze elevation in radian, between `min_time` and
-  `max_time`.
+Average gaze elevation in degrees, between \code{min_time} and
+\code{max_time}.
 }
 \description{
-You can supply timestamps to `min_time` and `max_time` (e.g timestamp of
+You can supply timestamps to \code{min_time} and \code{max_time} (e.g timestamp of
 begin escape) to average over only a period.
 }
 \details{

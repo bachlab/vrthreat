@@ -10,6 +10,12 @@ find_initial_threat_position(scenario_data)
 \item{scenario_data}{The scenario data list (should be read from scenario
 .json file)}
 }
+\value{
+A list representing the threat position with 6 items, \code{"pos_x"},
+\code{"pos_y"}, and \code{"pos_z"},  the x, y, and z position of the object in Unity
+units (m), as well as  the Euler Angles  \code{"rot_x"}, \code{"rot_y"}, and \code{"rot_z"}.
+NULL if none found.
+}
 \description{
 This refers to the front most part of the threat and does not correspond to
 threat position in the threat movement data frame which is in reference to

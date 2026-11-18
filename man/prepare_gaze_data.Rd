@@ -8,8 +8,8 @@ prepare_gaze_data(df, samplingrate = NULL)
 }
 \arguments{
 \item{df}{A movement or eyetracker data frame. Expected columns are either
-`rot_x`, `rot_y`, `rot_z`, or `gaze_direction_x`, `gaze_direction_y`,
-`gaze_direction_z`}
+\code{rot_x}, \code{rot_y}, \code{rot_z}, or \code{gaze_direction_x}, \code{gaze_direction_y},
+\code{gaze_direction_z}}
 
 \item{samplingrate}{resampling rate}
 }
@@ -21,7 +21,7 @@ This is a convenience function to resample and filter head movement or
 eye tracker data frames for further gaze processing.
 }
 \details{
-To be used with `extract_...` functions that extract movement features between
+To be used with \code{extract_...} functions that extract movement features between
 time points. To avoid edge effects, the filtering is done on the entire data
 frame.
 

@@ -4,21 +4,23 @@
 \alias{resample_filter_pos}
 \title{Resample and median-filter position and rotation columns in a movement data frame}
 \usage{
-resample_filter_pos(df, new_time, span = 3)
+resample_filter_pos(df, sample_rate = 10, sample_index = NULL, span = 3)
 }
 \arguments{
 \item{df}{Movement data frame}
 
-\item{new_time}{Resampling index}
+\item{sample_rate}{Rate to resample data with (default 10)}
+
+\item{sample_index}{time points to resample at. Overrides sample_rate if not NULL (default NULL)}
 
 \item{span}{Median filter span (default 3)}
 }
 \value{
-Resampled data frame with filtered columns add as `new_pos_...` or `new_rot`
+Resampled data frame with filtered columns add as \code{new_pos_...} or \code{new_rot}
 }
 \description{
 This is a convenience function to resample and filter an entire data frame.
-To be used with `extract_...` functions that extract movement features between
+To be used with \code{extract_...} functions that extract movement features between
 time points. To avoid edge effects, the filtering is done on the entire data
 frame, rather than just on an interval of interest.
 }

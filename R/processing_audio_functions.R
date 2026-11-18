@@ -8,7 +8,7 @@
 #' `talk_to_self`.
 #'
 #' Sound classification file must have the following columns: `mic.wav_location_0` and `sound_cat`. 
-#' The following columns are added if they exist: `sound_comments`, `transcription`
+#' Further columns are added if they contain the strings `transcription`, `comment` or `sound`
 #' The expected classification key for `sound_cat` is:
 #' 0. No sound
 #' 1. Non-differentiable (vowels, growls, long hissing)
@@ -37,8 +37,11 @@ join_sound_classification <- function(df, sound_fn) {
   }
   
   sound_classification_data <- sound_classification_data %>%
-    dplyr::select(tidyselect::all_of(c("mic.wav_location_0", "sound_cat")), 
-                  tidyselect::any_of(c("sound_comments", "transcription")))
+    dplyr::select(tidyselect::all_of(c("mic.wav_location_0", "sound_cat")), # checks that these colums do exist
+                  tidyselect::contains(c("transcription", "comment", "sound"))) %>%
+    dplyr::mutate(sound_cat = as.character(sound_cat)) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(mic.wav_location_0 = remove_study_path(mic.wav_location_0))
   
   df %>%
     dplyr::rowwise() %>%
@@ -74,7 +77,8 @@ join_sound_classification <- function(df, sound_fn) {
 #'
 #' @examples
 read_sound_classification <- function(fn) {
-  readr::read_csv(fn) %>%
+  readr::read_csv(fn,
+                  col_types = cols(sound_cat = col_character())) %>%
     dplyr::rowwise() %>%
     dplyr::mutate(mic.wav_location_0 = remove_study_path(mic.wav_location_0)) %>%
     dplyr::ungroup()
@@ -129,7 +133,7 @@ play_audio_section <- function(audiofile,
                                to = NA) {
   print(audiofile)
   local_audiofile <- basename(audiofile)
-  file.copy(audiofile, local_audiofile)
+  file.copy(audiofile, local_audiofile, copy.mode = FALSE)
 
   get_audio_section(local_audiofile, from = from, to = to) %>%
    tuneR::play()
@@ -158,7 +162,7 @@ write_audio_section <- function(audiofile,
                                 from = 0,
                                 to = NA) {
   local_audiofile <- basename(audiofile)
-  file.copy(audiofile, local_audiofile)
+  file.copy(audiofile, local_audiofile, copy.mode = FALSE)
 
 
   get_audio_section(local_audiofile, from = from, to = to) %>%
@@ -207,6 +211,8 @@ detect_sound <-
            volume_threshold = 700,
            duration_threshold = .06) {
 
+    if (is.null(soundfile)) return(FALSE)
+    
     detect_sound_in_audio_object <-
       function(volume_threshold,
                duration_threshold,
@@ -220,7 +226,7 @@ detect_sound <-
       }
 
     cat(soundfile, "\n")
-    sts <- file.copy(soundfile, "tempfile.wav")
+    sts <- file.copy(soundfile, "tempfile.wav", copy.mode = FALSE)
     # deal with faulty files and edge cases
     if (is.na(start_time) | sts == FALSE | file.info("tempfile.wav")$size == 0) {
       sound_detected <- rep(FALSE, times = length(volume_threshold))
@@ -242,6 +248,40 @@ detect_sound <-
     return(sound_detected)
   }
 
+#' Automatically detect sounds across an entire data frame
+#'
+#' @param df A trial results data frame
+#' @param .col String: the name of the column containing the sound file paths
+#' @param start_time A single value or vector of start times (relative to sound file start) for the detection. Default: 0 s
+#' @param volume_threshold A single volume threshold. Default: 700
+#' @param duration_threshold A single duration threshold. Default: 0.06 s
+#'
+#' @returns The data frame with a new logical column `sound_detected` added.
+#' @export
+#'
+#' @examples
+detect_sound_cols <- function(df,
+                              .col = "mic.wav_location_0",
+                              start_time = 0,
+                              volume_threshold = 700,
+                              duration_threshold = .06) {
+  # prepare input
+  sounds <- df[[.col]]
+  if (!(length(start_time) %in% c(1, length(sounds))))
+    return(NULL)
+  
+  # run sound detection
+  sounds_detected <-
+    purrr::map2_lgl(sounds,
+                  start_time,
+                  vrthreat::detect_sound,
+                  volume_threshold,
+                  duration_threshold)
+  
+  df %>%
+    bind_cols(sounds_detected = sounds_detected)
+  
+}
 
 #' Manually classify sounds
 #'

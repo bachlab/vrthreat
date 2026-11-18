@@ -13,7 +13,7 @@ remove_missing_columns(data)
 A data frame with all-NA columns removed.
 }
 \description{
-Removes columns that are entirely `NA` from a data frame and prints their names.
+Removes columns that are entirely \code{NA} from a data frame and prints their names.
 }
 \examples{
 df <- remove_missing_columns(df)

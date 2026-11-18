@@ -2,7 +2,7 @@
 % Please edit documentation in R/processing_movement_functions.R
 \name{guess_move_at_pos}
 \alias{guess_move_at_pos}
-\title{Guess First Move From or To Position}
+\title{Guess First or Last Move From or To Position}
 \usage{
 guess_move_at_pos(
   pos,
@@ -11,16 +11,17 @@ guess_move_at_pos(
   max_dist = 0.2,
   min_time = min(ref_movement$time),
   max_time = max(ref_movement$time),
-  method = "from"
+  method = "from",
+  time = "first"
 )
 }
 \arguments{
-\item{pos}{A list containing `pos_x` `pos_y` `pos_z` of fixed position.}
+\item{pos}{A list containing \code{pos_x} \code{pos_y} \code{pos_z} of fixed position.}
 
 \item{ref_pos}{Optional: a second list of the same type}
 
 \item{ref_movement}{A data frame with reference movement, e.g. the head or
-the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`
+the waist movement. Movement file should have \code{pos_x}, \code{pos_y}, \code{pos_z}
 columns.}
 
 \item{max_dist}{Maximum distance in meters before player is
@@ -28,11 +29,14 @@ classified as away from the position}
 }
 \value{
 A time stamp (Unity time) representing the time when the participant
-  initially moved from or to the position.
+initially moved from or to the position.
 }
 \description{
 Guess the time at which the player initially moved away from, or to, a fixed position.
 This is evaluated within the horizontal plane only (2D).
 If ref_pos is given, then the function evaluates the orthogonal distance along
 the line pos-ref_pos
+}
+\details{
+The time parameter specifies whether to use the first or last time the player moves into the threshhold.
 }

@@ -14,12 +14,12 @@ guess_move_from_pos(
 )
 }
 \arguments{
-\item{pos}{A list containing `pos_x` `pos_y` `pos_z` of fixed position.}
+\item{pos}{A list containing \code{pos_x} \code{pos_y} \code{pos_z} of fixed position.}
 
 \item{ref_pos}{Optional: a second list of the same type}
 
 \item{ref_movement}{A data frame with reference movement, e.g. the head or
-the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`
+the waist movement. Movement file should have \code{pos_x}, \code{pos_y}, \code{pos_z}
 columns.}
 
 \item{max_dist}{Maximum distance in meters before player is
@@ -27,7 +27,7 @@ classified as away from the position}
 }
 \value{
 A time stamp (Unity time) representing the time when the participant
-  initially moved from the position.
+initially moved from the position.
 }
 \description{
 Guess the time at which the player initially moved away from a fixed position.

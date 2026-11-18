@@ -7,15 +7,15 @@
 add_gaze_elevation(df, direction = c(0, 0, 1))
 }
 \arguments{
-\item{df}{Movement or eye tracker or combined/resampled data frame. Expects either columns `rot_x`,
-`rot_y`, `rot_z`, or columns `gaze_direction_x`, `gaze_direction_y`, `gaze_direction_z`}
+\item{df}{Movement or eye tracker or combined/resampled data frame. Expects either columns \code{rot_x},
+\code{rot_y}, \code{rot_z}, or columns \code{gaze_direction_x}, \code{gaze_direction_y}, \code{gaze_direction_z}}
 
 \item{direction}{Reference gaze vector direction (default: forward)}
 }
 \value{
-Original data frame with column `gaze_elevation` in degrees added.
+Original data frame with column \code{gaze_elevation} in degrees added.
 }
 \description{
 Takes a movement or eye tracker data frame, derives rotation matrices from orientation data,
-and adds the gaze elevation over the horizontal plane.
+and adds the gaze elevation over the horizontal (x-z) plane.
 }

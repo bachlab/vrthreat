@@ -12,12 +12,11 @@ translate_movement_to_ref(df, ref_pos = list(pos_x = 0, pos_y = 0, pos_z = 0))
 \item{ref_pos}{A named list of x,y,z reference position (default: 0, 0, 0)}
 }
 \value{
-A translated movement data frame with the same column names
+\if{html}{\out{<div class="sourceCode">}}\preformatted{    A translated movement data frame with the same column names
+}\if{html}{\out{</div>}}
 }
 \description{
 This is a convenience function to make escape responses comparable between
-scenarios with different orientation (e.g. different fruit picking place). It
-does not (yet) allow reorienting the rotations.
-(NOTE: if required, such rotation re-orientation would require a function to
-convert a rotation matrix to Euler angles)
+scenarios with different orientation (e.g. different fruit picking place).
+NOTE: this is a legacy function, superseded by \code{reorient_movement}
 }

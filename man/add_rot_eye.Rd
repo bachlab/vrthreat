@@ -3,13 +3,13 @@
 \name{add_rot_eye}
 \alias{add_rot_eye}
 \title{Helper function that takes an eye tracker data frame and adds
-a new column `R` with the rotation matrices.}
+a new column \code{R} with the rotation matrices.}
 \usage{
 add_rot_eye(df, direction = c(0, 0, 1))
 }
 \arguments{
-\item{df}{Movement data frame. Expected columns: `gaze_direction_x`,
-`gaze_direction_y`, `gaze_direction_z`}
+\item{df}{Movement data frame. Expected columns: \code{gaze_direction_x},
+\code{gaze_direction_y}, \code{gaze_direction_z}}
 
 \item{direction}{Reference gaze direction. Default: forward.}
 }
@@ -18,5 +18,5 @@ Same df with rotation matrices added
 }
 \description{
 Helper function that takes an eye tracker data frame and adds
-a new column `R` with the rotation matrices.
+a new column \code{R} with the rotation matrices.
 }

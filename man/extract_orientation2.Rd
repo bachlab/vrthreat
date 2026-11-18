@@ -3,7 +3,7 @@
 \name{extract_orientation2}
 \alias{extract_orientation2}
 \title{Extract direction of the orientation of a reference object relative to a
-target movement (in 2D, XZ) between a `min_time` and `max_time`.}
+target movement (in 2D, XZ) between a \code{min_time} and \code{max_time}.}
 \usage{
 extract_orientation2(
   ref_movement,
@@ -16,8 +16,8 @@ extract_orientation2(
 }
 \arguments{
 \item{ref_movement}{A reference movement data frame, e.g. the head or
-the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`,
-`rot_x`, `rot_y`, `rot_z` columns.}
+the waist movement. Movement file should have \code{pos_x}, \code{pos_y}, \code{pos_z},
+\code{rot_x}, \code{rot_y}, \code{rot_z} columns.}
 
 \item{target_movement}{Data frame of reference movement (e.g threat movement)}
 
@@ -28,14 +28,20 @@ the waist movement. Movement file should have `pos_x`, `pos_y`, `pos_z`,
 \item{convert2cos}{Whether to use the cosine of the angle (TRUE, default) or
 the absolute angle (FALSE)}
 
-\item{...}{any other arguments to be passed on to `add_orientation2target2`}
+\item{...}{any other arguments to be passed on to \link{add_orientation2target2}}
 }
 \value{
-An average of the `target_ratio` or absolute target difference over
- time between `min_time` and `max_time`. Uses trapezium rule for average over
- variable sample rate.
+An average of the \code{target_ratio} or absolute target difference over
+time between \code{min_time} and \code{max_time}. Uses trapezium rule for average over
+variable sample rate.
 }
 \description{
-You can supply timestamps to `min_time` and `max_time` (e.g timestamp of
+You can supply timestamps to \code{min_time} and \code{max_time} (e.g timestamp of
 begin escape) to average over only a period.
+}
+\examples{
+sample_movement <- example_data$head_movement_data_0[[1]]
+threat_movement <- example_data$threat_movement_data_0[[1]]
+
+extract_orientation2(sample_movement, threat_movement)
 }

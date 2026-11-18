@@ -2,16 +2,12 @@
 % Please edit documentation in R/processing_trial_functions.R
 \name{resample_movement_cols}
 \alias{resample_movement_cols}
-\title{Resample movement data columns}
+\title{Resample and relocate movement data columns}
 \usage{
 resample_movement_cols(
   df,
   .cols = tidyselect::ends_with("_movement_data_0") & !(tidyselect::starts_with("valid")),
-  start_resample_col,
-  end_resample_col,
-  max_duration,
-  sample_rate = 10,
-  ref_pos_col = c()
+  sample_rate = NULL
 )
 }
 \arguments{
@@ -20,31 +16,24 @@ resample_movement_cols(
 \item{.cols}{Columns containing dataframes to resample.
 (Default: all movement data). Each data frame must have a column 'time'.}
 
-\item{start_resample_col}{Column containing start timestamps.}
-
-\item{end_resample_col}{Column containing end timestamps.}
-
-\item{max_duration}{Maximum duration of the resample.}
-
-\item{sample_rate}{New sample rate (Hz).}
+\item{sample_rate}{New sample rate (Hz) (default 10).}
 
 \item{ref_pos_col}{Column containing reference position (e.g. fruit picking position), default
 is relative to origin (i.e. just resample, no translation)}
 }
 \value{
-The data frame with a new columns of resampled movements added, with
-new column name ending with `_resampled`.
+The data frame with movement data offset and new columns with resampling, with
+new column name ending with \verb{_resampled}.
 }
 \description{
-Convenient wrapper around `resample_movement`. For provided columns, resamples
-movement dataframes contained in the columns between times stored in
-`start_resample_col` and `end_resample_col`. Resampling is done up to a max
-duration of `max_duration` with a sample rate `sample_rate`. Non-existing
-time points for any trial are filled with "NA". Position values will be reoriented
-to reference position if given.
-Returns the data frame with new columns added.
+Convenient wrapper around \link{resample_movement}
 }
 \details{
+Non-existing time points for any trial are filled with "NA". Position values will be reoriented
+to reference position if given.
+
+Returns the data frame with new columns added.
+
 To resample fruit collection and eyetracker data, see
-`resample_fruit_task_cols` and `resample_eyetracker_cols`.
+\code{resample_fruit_task_cols} and \code{resample_eyetracker_cols}.
 }

@@ -7,7 +7,7 @@
 find_hierarchy_object(x, name, include_children = FALSE, partial_match = FALSE)
 }
 \arguments{
-\item{x}{The object hierarchy to search. This is typically a `list` loaded from a scenario `.json` file.}
+\item{x}{The object hierarchy to search. This is typically a \code{list} loaded from a scenario \code{.json} file.}
 
 \item{name}{The object name to search for.}
 
@@ -19,5 +19,5 @@ find_hierarchy_object(x, name, include_children = FALSE, partial_match = FALSE)
 The matching object, or NULL if none found.
 }
 \description{
-Search an object hierarchy for an object by name. This is useful for searching for a specific object in a saved scenario `.json` file.
+Search an object hierarchy for an object by name. This is useful for searching for a specific object in a saved scenario \code{.json} file.
 }

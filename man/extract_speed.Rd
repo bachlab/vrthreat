@@ -2,18 +2,19 @@
 % Please edit documentation in R/extract_movement_functions.R
 \name{extract_speed}
 \alias{extract_speed}
-\title{Extract speed (peak or average speed) between a `min_time` and `max_time`.}
+\title{Extract speed (peak or average speed) between a \code{min_time} and \code{max_time}.}
 \usage{
 extract_speed(
   df,
-  min_time = min(df$time),
-  max_time = max(df$time),
+  min_time = min(df$time, na.rm = TRUE),
+  max_time = max(df$time, na.rm = TRUE),
   method = "mean",
-  samplingrate = 10
+  samplingrate = 10,
+  dimension = "3D"
 )
 }
 \arguments{
-\item{df}{A movement data frame. Expected columns are `pos_x`, `pos_y`, `pos_z`}
+\item{df}{A movement data frame. Expected columns are \code{pos_x}, \code{pos_y}, \code{pos_z}}
 
 \item{min_time}{minimum time in s (default: trial start)}
 
@@ -22,13 +23,15 @@ extract_speed(
 \item{method}{whether to extract mean (default) or max}
 
 \item{samplingrate}{resampling rate}
+
+\item{dimension}{"3D" (default) or "2D" (only horizontal speed)}
 }
 \value{
-Peak or average 3-dimensional speed, between `min_time` and
-  `max_time`.
+Peak or average 3-dimensional speed, between \code{min_time} and
+\code{max_time}.
 }
 \description{
-You can supply timestamps to `min_time` and `max_time` (e.g timestamp of
+You can supply timestamps to \code{min_time} and \code{max_time} (e.g timestamp of
 begin escape) to average over only a period. In both cases, you can either
 retrieve peak or average (default) three-dimensional speed.
 }

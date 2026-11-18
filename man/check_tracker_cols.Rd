@@ -9,17 +9,17 @@ check_tracker_cols(df, start_pos, ref_tracker = "head_movement_data_0")
 \arguments{
 \item{df}{A trial results data frame with movement data columns}
 
-\item{start_pos}{A trial start position column (expects, per row, a list with elements `x` and `z`) (string)}
+\item{start_pos}{A trial start position column (expects, per row, a list with elements \code{x} and \code{z}) (string)}
 
 \item{ref_tracker}{A reference tracker column (string, default is "head_movement_data_0")}
 }
 \value{
-The same dataframe, with new columns `valid_` which contains detailed
- information for each tracker (list), and a column `valid_trackers` that combines
- information from all trackers (Boolean)
+The same dataframe, with new columns \code{valid_} which contains detailed
+information for each tracker (list), and a column \code{valid_trackers} that combines
+information from all trackers (Boolean)
 }
 \description{
-Checks validity of movement tracker data by using `check_valid_movement` on all
+Checks validity of movement tracker data by using \code{check_valid_movement} on all
 movement data columns contained in the data frame. The reference column is
 checked against the starting position; all other columns are checked against the
 reference column.

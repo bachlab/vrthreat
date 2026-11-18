@@ -29,13 +29,13 @@ resample_eyetracker_cols(
 }
 \value{
 The data frame with a new columns of resampled movements added, with
-new column name ending with `_resampled`.
+new column name ending with \verb{_resampled}.
 }
 \description{
-Convenient wrapper around `resample_eyetracker`. For provided columns, resamples
+Convenient wrapper around \code{resample_eyetracker}. For provided columns, resamples
 eyetracker dataframes contained in the columns between times stored in
-`start_resample_col` and `end_resample_col`. Resampling is done up to a max
-duration of `max_duration` with a sample rate `sample_rate`. Non-existing
+\code{start_resample_col} and \code{end_resample_col}. Resampling is done up to a max
+duration of \code{max_duration} with a sample rate \code{sample_rate}. Non-existing
 time points for any trial are filled with "NA".
 Returns the data frame with new columns added.
 }

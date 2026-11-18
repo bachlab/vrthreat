@@ -12,11 +12,11 @@ find_safe_position(scenario_data)
 }
 \value{
 A list representing the position of the first found Safe House object
-  in the scenario data.  The list contains 6 items, `"pos_x"`, `"pos_y"`, and `"pos_z"`,
-  the x, y, and z position of the object in Unity units (m), as well as  the
-  Euler Angles  `"rot_x"`, `"rot_y"`, and `"rot_z"`. NULL if none found.
+in the scenario data.  The list contains 6 items, \code{"pos_x"}, \code{"pos_y"}, and \code{"pos_z"},
+the x, y, and z position of the object in Unity units (m), as well as  the
+Euler Angles  \code{"rot_x"}, \code{"rot_y"}, and \code{"rot_z"}. NULL if none found.
 }
 \description{
 Finds the position of the Safe House. This looks objects with name
-`"SafeHouse"`. If there are multiple, returns the first one found.
+\code{"SafeHouse"}. If there are multiple, returns the first one found.
 }

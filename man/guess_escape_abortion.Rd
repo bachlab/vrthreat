@@ -27,5 +27,5 @@ guess_escape_abortion(
 Guess whether escape was aborted and extract position (distance from safe place)
 and absolute time. Looks for trials with outcome "survived" in which the
 minimum distance from the safe place was achieved at least 0.5 s before trial
-end (as derived from `guess_escape_end_time()`)
+end (as derived from \code{guess_escape_end_time()})
 }

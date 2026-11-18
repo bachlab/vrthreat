@@ -3,17 +3,17 @@
 \name{add_rot_move}
 \alias{add_rot_move}
 \title{Helper function that takes a movement data frame and adds
-a new column `R` with the rotation matrices.}
+a new column \code{R} with the rotation matrices.}
 \usage{
 add_rot_move(df)
 }
 \arguments{
-\item{df}{Movement data frame. Expected columns: `rot_x`, `rot_y`, `rot_z`}
+\item{df}{Movement data frame. Expected columns: \code{rot_x}, \code{rot_y}, \code{rot_z}}
 }
 \value{
 Same df with rotation matrices added
 }
 \description{
 Helper function that takes a movement data frame and adds
-a new column `R` with the rotation matrices.
+a new column \code{R} with the rotation matrices.
 }

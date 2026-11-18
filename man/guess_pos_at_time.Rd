@@ -9,10 +9,10 @@ guess_pos_at_time(df, ref_time)
 \arguments{
 \item{df}{a data frame}
 
-\item{ref_time}{a reference time}
+\item{ref_time}{a reference time (vector of time points to guess at)}
 }
 \value{
-a list with elements `pos_x`, `pos_y`, `pos_z`
+a list with elements \code{pos_x}, \code{pos_y}, \code{pos_z}
 }
 \description{
 Guess/interpolate position at a point in time

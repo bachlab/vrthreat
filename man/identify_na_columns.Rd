@@ -9,12 +9,12 @@ identify_na_columns(data, print_output = TRUE, return_counts = FALSE)
 \arguments{
 \item{data}{A data frame or tibble to inspect for missing values.}
 
-\item{print_output}{Logical. If `TRUE`, prints the columns with their NA counts. Defaults to `TRUE`.}
+\item{print_output}{Logical. If \code{TRUE}, prints the columns with their NA counts. Defaults to \code{TRUE}.}
 
-\item{return_counts}{Logical. If `TRUE`, returns a named vector with column names and their respective NA counts. If `FALSE`, returns a character vector of column names. Defaults to `FALSE`.}
+\item{return_counts}{Logical. If \code{TRUE}, returns a named vector with column names and their respective NA counts. If \code{FALSE}, returns a character vector of column names. Defaults to \code{FALSE}.}
 }
 \value{
-A character vector of column names with missing values, or a named vector with NA counts if `return_counts = TRUE`.
+A character vector of column names with missing values, or a named vector with NA counts if \code{return_counts = TRUE}.
 }
 \description{
 This function identifies columns in a data frame that contain missing (NA) values.

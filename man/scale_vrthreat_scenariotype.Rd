@@ -7,11 +7,11 @@
 scale_vrthreat_scenariotype(...)
 }
 \arguments{
-\item{...}{Arguments passed to `scale_fill_manual` and `scale_color_manual`.}
+\item{...}{Arguments passed to \code{scale_fill_manual} and \code{scale_color_manual}.}
 }
 \value{
 A set of scales to be added to a ggplot.
 }
 \description{
-A fill/color scale used across scenario types (`"Chase"`, `"Divert"`).
+A fill/color scale used across scenario types (\code{"Chase"}, \code{"Divert"}).
 }

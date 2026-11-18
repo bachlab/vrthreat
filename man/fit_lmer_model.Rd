@@ -12,10 +12,10 @@ fit_lmer_model(formula_str, data)
 \item{data}{A data frame used for model fitting.}
 }
 \value{
-A fitted `lmerMod` object if successful, otherwise `NULL`.
+A fitted \code{lmerMod} object if successful, otherwise \code{NULL}.
 }
 \description{
 This function attempts to fit a linear mixed-effects model with a given
-formula string using the `lme4::lmer` function. It includes error handling
-to gracefully return `NULL` if the model cannot be fit.
+formula string using the \code{lme4::lmer} function. It includes error handling
+to gracefully return \code{NULL} if the model cannot be fit.
 }

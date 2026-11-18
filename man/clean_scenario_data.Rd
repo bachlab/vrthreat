@@ -9,7 +9,7 @@ clean_scenario_data(df, column_name = "scenario_data_0")
 \arguments{
 \item{df}{A data frame containing the scenario data column.}
 
-\item{column_name}{Name of the column to inspect (default is `"scenario_data_0"`).}
+\item{column_name}{Name of the column to inspect (default is \code{"scenario_data_0"}).}
 }
 \value{
 The data frame with problematic rows removed.

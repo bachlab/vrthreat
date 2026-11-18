@@ -12,13 +12,13 @@ guess_escape_begin_time(
   min_speed = 0.1,
   min_time = min(df$time),
   max_time = max(df$time),
-  indx = 1
+  time = "first"
 )
 }
 \arguments{
 \item{df}{movement data frame}
 
-\item{ref_pos}{reference position, a list containing `pos_x` and `pos_z`}
+\item{ref_pos}{reference position, a list containing \code{pos_x} and \code{pos_z}}
 
 \item{esc_dist}{minimum distance from reference position to determine escape}
 
@@ -30,7 +30,7 @@ guess_escape_begin_time(
 
 \item{max_time}{maximum time to search for escape}
 
-\item{indx}{currently disabled (only needed for debugging)}
+\item{time}{"\verb{first``" (default) or "}last`" escape}
 }
 \description{
 This function determines the time point when the player was first away from the

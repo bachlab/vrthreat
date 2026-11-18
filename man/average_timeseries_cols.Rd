@@ -23,7 +23,7 @@ average_timeseries_cols(
 A new data frame with averaged timeseries data.
 }
 \description{
-Convenient wrapper around `average_timeseries`. For provided columns,
+Convenient wrapper around \code{average_timeseries}. For provided columns,
 averages resampled timeseries dataframes contained. Returns a new data frame
 with the averaged data and columns with grouping variables. No input checks
 are performed, i.e. if input data are not resampled at the same time index then

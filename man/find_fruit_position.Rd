@@ -12,13 +12,13 @@ find_fruit_position(scenario_data)
 }
 \value{
 A list representing the position of the Stand Here marker of the
-  first found fruit task object in the scenario data. The list contains 6 items,
-   `"pos_x"`, `"pos_y"`, and `"pos_z"`,
-  the x, y, and z position of the object in Unity units (m), as well as  the
-  Euler Angles  `"rot_x"`, `"rot_y"`, and `"rot_z"`. NULL if none found.
+first found fruit task object in the scenario data. The list contains 6 items,
+\code{"pos_x"}, \code{"pos_y"}, and \code{"pos_z"},
+the x, y, and z position of the object in Unity units (m), as well as  the
+Euler Angles  \code{"rot_x"}, \code{"rot_y"}, and \code{"rot_z"}. NULL if none found.
 }
 \description{
-Finds the position of the `"Stand Here"` marker of the first found object
-that matches the fruit task object names (`fruit_gameobject_names`). This
-looks for child objects with name `"WalkHere"`.
+Finds the position of the \code{"Stand Here"} marker of the first found object
+that matches the fruit task object names (\code{fruit_gameobject_names}). This
+looks for child objects with name \code{"WalkHere"}.
 }

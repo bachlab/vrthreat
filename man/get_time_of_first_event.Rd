@@ -7,18 +7,18 @@
 get_time_of_first_event(sequence_data, event_type)
 }
 \arguments{
-\item{sequence_data}{The sequence data list (i.e. `sequence0_T00X.json`
-parsed to a `list`).}
+\item{sequence_data}{The sequence data list (i.e. \code{sequence0_T00X.json}
+parsed to a \code{list}).}
 
 \item{event_type}{A vector containing the names event types. Should be
-one of `"Wait"`, `"Event Call"`, `"Animate Behaviour"`, `"Move Towards`,
-`"Rotate Towards"` `"Head Look"`. It can also be `"VerbaliseClip"`,
-a specific animation of type `"Animate Behaviour"`. The time of the first
+one of \code{"Wait"}, \code{"Event Call"}, \code{"Animate Behaviour"}, \verb{"Move Towards},
+\code{"Rotate Towards"} \code{"Head Look"}. It can also be \code{"VerbaliseClip"} or \code{"Attack"},
+a specific animation of type \code{"Animate Behaviour"}. The time of the first
 detected event is returned.}
 }
 \value{
 A numeric value of the time (in Unity time, seconds since start-up)
-  of the event. NA if none found.
+of the event. NA if none found.
 }
 \description{
 Looks in the sequence data list to find the time at which the first

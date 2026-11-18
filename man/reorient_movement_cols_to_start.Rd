@@ -17,14 +17,14 @@ reorient_movement_cols_to_start(
 (Default: waist tracker data).}
 
 \item{ref_pos_col}{Reference position column (for example, generated with
-`find_start_pos`). Default: no reference, will default to a list of zeros.}
+\code{find_start_pos}). Default: no reference, will default to a list of zeros.}
 }
 \value{
 The data frame with a new columns of resampled movements added, with
-new column name ending with `_reoriented`.
+new column name ending with \verb{_reoriented}.
 }
 \description{
-Convenient wrapper around `reorient_movement_to_start`. For provided columns, reorients
+Convenient wrapper around \code{reorient_movement_to_start}. For provided columns, reorients
 movement dataframes contained in the provided columns.
 Returns the data frame with new columns added.
 }

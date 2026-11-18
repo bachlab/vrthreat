@@ -12,30 +12,32 @@ join_data(
 )
 }
 \arguments{
-\item{trial_results}{A data frame or tibble containing trial-level metadata with columns `ppid`, `session_num`, and `trial_num`.}
+\item{trial_results}{A data frame or tibble containing trial-level metadata with columns \code{ppid}, \code{session_num}, and \code{trial_num}.}
 
-\item{processed_base_folder}{A character string specifying the path to the base folder containing processed `.csv` movement files.}
+\item{processed_base_folder}{A character string specifying the path to the base folder containing processed \code{.csv} movement files.}
 
-\item{column_name}{A character string giving the name for the new column containing nested tibbles of movement data. Default is `"processed_movement_data"`.}
+\item{column_name}{A character string giving the name for the new column containing nested tibbles of movement data. Default is \code{"processed_movement_data"}.}
 
 \item{verbose}{Whether to save a csv of unmatched files}
 }
 \value{
-A tibble: the original `trial_results` with an added column (named by `column_name`) containing nested data frames of csv data, and
-a column ((named by `column_name` + "_filepath") with the source path of this nested tibble
+A tibble: the original \code{trial_results} with an added column (named by \code{column_name}) containing nested data frames of csv data, and
+a column ((named by \code{column_name} + "_filepath") with the source path of this nested tibble
 Files that could not be matched or read are skipped, with warnings shown.
 }
 \description{
-Recursively loads and joins trial-level data (usually additional movement data recorded outside Unity, e.g., MoCap data) to an existing tibble. 
-Matches files based on `ppid`, `session_num`, and `trial_num`, using both folder structure and filename information.
+Recursively loads and joins trial-level data (usually additional movement data recorded outside Unity, e.g., MoCap data) to an existing tibble.
+Matches files based on \code{ppid}, \code{session_num}, and \code{trial_num}, using both folder structure and filename information.
 File names and file tree must follow a standard format (see below).
 }
 \details{
-- File name must start with `"T"` (for trial), followed by the trial number
-- Files starting with `"R"` (for run) are actively ignored (e.g., `R001_vrthreat.csv`), as they refer to data not recorded trial-by-trial 
-- Session numbers are inferred either from the folder name (`.../1_2/S001/...`) or directly from the session folder (`.../1/S002/...`).
-- Trial numbers are extracted from filenames like `T034_*.csv`.
-- Data loading is performed safely with `purrr::possibly()` to avoid stopping on corrupted files.
+\itemize{
+\item File name must start with \code{"T"} (for trial), followed by the trial number
+\item Files starting with \code{"R"} (for run) are actively ignored (e.g., \code{R001_vrthreat.csv}), as they refer to data not recorded trial-by-trial
+\item Session numbers are inferred either from the folder name (\verb{.../1_2/S001/...}) or directly from the session folder (\code{.../1/S002/...}).
+\item Trial numbers are extracted from filenames like \code{T034_*.csv}.
+\item Data loading is performed safely with \code{purrr::possibly()} to avoid stopping on corrupted files.
+}
 }
 \examples{
 \dontrun{

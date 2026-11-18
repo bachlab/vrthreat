@@ -7,20 +7,22 @@
 create_weapon_details(df)
 }
 \arguments{
-\item{df}{A data frame with at least a `weapon_message` column.}
+\item{df}{A data frame with at least a \code{weapon_message} column.}
 }
 \value{
 The input data frame with four new factor columns:
-  `weapon_type`, `weapon_effect`, `weapon_hand`, and `weapon_picked_up`.
+\code{weapon_type}, \code{weapon_effect}, \code{weapon_hand}, and \code{weapon_picked_up}.
 }
 \description{
 This function processes a data frame containing raw weapon event messages
-(in the column `weapon_message`) and adds new columns describing the type,
+(in the column \code{weapon_message}) and adds new columns describing the type,
 effect, and usage details of the weapon. Specifically, it:
-- Extracts the `weapon_type` from the message using a regex pattern.
-- Classifies the `weapon_effect` (e.g., kill, stop, noEffect).
-- Determines which hand (`weapon_hand`) the weapon was used with.
-- Flags whether a weapon was picked up (`weapon_picked_up`).
+\itemize{
+\item Extracts the \code{weapon_type} from the message using a regex pattern.
+\item Classifies the \code{weapon_effect} (e.g., kill, stop, noEffect).
+\item Determines which hand (\code{weapon_hand}) the weapon was used with.
+\item Flags whether a weapon was picked up (\code{weapon_picked_up}).
+}
 }
 \examples{
 df <- create_weapon_details(df)

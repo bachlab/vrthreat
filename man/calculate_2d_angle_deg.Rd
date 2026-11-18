@@ -17,7 +17,7 @@ calculate_2d_angle_deg(target_x, target_z, ref_x = 0, ref_z = 0)
 }
 \value{
 Angle between a line from reference to target vector and positive
-z-axis, measured clockwise and in [-180, 180]
+z-axis, measured clockwise and in \link{-180, 180}
 }
 \description{
 Calculate 2D angle between positive z-axis and a line from reference to target position in degrees

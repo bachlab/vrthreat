@@ -14,6 +14,6 @@ Returns no value
 }
 \description{
 Finds threat start and location of microphone recording in a data frame, and plays the audio from the start of the threat, using 'play_audio_section'.
-Expects columns 'threat_appear_time', 'start_time', 'mic.wav_location_0'. Expects absolute paths, use `update_file_pointers` to
+Expects columns 'threat_appear_time', 'start_time', 'mic.wav_location_0'. Expects absolute paths, use \code{update_file_pointers} to
 update them if necessary.
 }

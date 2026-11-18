@@ -3,12 +3,12 @@
 \name{extract_speed_angular}
 \alias{extract_speed_angular}
 \title{Extract angular speed (peak or average speed) for a direction vector
-between a `min_time` and `max_time`.}
+between a \code{min_time} and \code{max_time}.}
 \usage{
 extract_speed_angular(
   df,
-  min_time = min(df$time),
-  max_time = max(df$time),
+  min_time = min(df$time, na.rm = TRUE),
+  max_time = max(df$time, na.rm = TRUE),
   method = "mean",
   samplingrate = 10,
   direction = c(0, 0, 1)
@@ -16,8 +16,8 @@ extract_speed_angular(
 }
 \arguments{
 \item{df}{A movement or eyetracker data frame. Expected columns are either
-`rot_x`, `rot_y`, `rot_z`, or `gaze_direction_x`, `gaze_direction_y`,
-`gaze_direction_z`}
+\code{rot_x}, \code{rot_y}, \code{rot_z}, or \code{gaze_direction_x}, \code{gaze_direction_y},
+\code{gaze_direction_z}}
 
 \item{min_time}{minimum time in s (default: trial start)}
 
@@ -30,11 +30,11 @@ extract_speed_angular(
 \item{direction}{Direction vector for which to compute the angular speed}
 }
 \value{
-Peak or average 3-dimensional speed, between `min_time` and
-  `max_time`.
+Peak or average 3-dimensional speed, between \code{min_time} and
+\code{max_time}.
 }
 \description{
-You can supply timestamps to `min_time` and `max_time` (e.g timestamp of
+You can supply timestamps to \code{min_time} and \code{max_time} (e.g timestamp of
 begin escape) to average over only a period. In both cases, you can either
 retrieve peak or average (default) angular speed.
 }

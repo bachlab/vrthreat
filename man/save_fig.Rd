@@ -2,7 +2,7 @@
 % Please edit documentation in R/io_functions.R
 \name{save_fig}
 \alias{save_fig}
-\title{Wrapper around `ggsave` to save figures.}
+\title{Wrapper around \code{ggsave} to save figures.}
 \usage{
 save_fig(
   plt,
@@ -23,18 +23,18 @@ save_fig(
 
 \item{fname}{The file name including extension.}
 
-\item{type}{Type passed to `ggsave`}
+\item{type}{Type passed to \code{ggsave}}
 
-\item{device}{Device passed to `ggsave` (default: "png")}
+\item{device}{Device passed to \code{ggsave} (default: "png")}
 
-\item{dpi}{dpi passed to `ggsave`}
+\item{dpi}{dpi passed to \code{ggsave}}
 
 \item{width}{width of the plot (default units are inches)}
 
 \item{height}{height of the plot (default units are inches)}
 
-\item{...}{Other arguments passed to `ggsave`.}
+\item{...}{Other arguments passed to \code{ggsave}.}
 }
 \description{
-Wrapper around `ggsave` to save figures.
+Wrapper around \code{ggsave} to save figures.
 }

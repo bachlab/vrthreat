@@ -17,10 +17,11 @@ reorient_movement_to_start(
 \item{.cols}{Columns to reorient. Default: all rotations and in-plane position}
 
 \item{ref_pos}{Reference position (named list, names must correspond to columns
-in df. See also `find_start_pos` for a way of generating such a list)}
+in df. See also \code{find_start_pos} for a way of generating such a list)}
 }
 \value{
-A re-oriented data frame with the same column names
+\if{html}{\out{<div class="sourceCode">}}\preformatted{ A re-oriented data frame with the same column names
+}\if{html}{\out{</div>}}
 }
 \description{
 This is a convenience function to make imprecisely attached trackers

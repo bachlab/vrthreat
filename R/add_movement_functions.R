@@ -206,7 +206,8 @@ add_in_view <- function(eye_df,
                         direction = c(0, 0, 1)) {
   if (tibble::is_tibble(ref_pos)) {
     ref_df <- ref_pos %>%
-      resample_movement(eye_df$time)
+      resample_movement(sample_index = eye_df$time) %>%
+      dplyr::select(c(time, pos_x, pos_y, pos_z))
     eye_df <- eye_df %>%
       add_vector2target2(ref_df) %>%
       dplyr::left_join(ref_df, by = "time")
@@ -218,6 +219,9 @@ add_in_view <- function(eye_df,
                     pos_z = ref_pos$pos_z)
   }
 
+  # convert foveal angle to radian
+  foveal_angle <- 2 * pi * (foveal_angle/360) 
+    
   eye_df %>%
     add_rot(direction) %>%
     dplyr::rowwise() %>%
@@ -225,12 +229,13 @@ add_in_view <- function(eye_df,
       object_dist = sqrt(sum((
         c(pos_x, pos_y, pos_z) - c(gaze_origin_x, gaze_origin_y, gaze_origin_z)
       ) ^ 2)),
-      object_angle = abs(atan(object_diameter / object_dist)),
+      object_angle = 2 * abs(atan(object_diameter / (2 * object_dist))),
       gaze_vector_cart_unity = list(c(R %*% direction)),
       angle_diff = abs(angle_between(
         gaze_vector_cart_unity,
         c(vector2target_x, vector2target_y, vector2target_z)
       )),
+      # angle diff is to the centre of the object, add 1/2 object_angle and 1/2 foveal angle
       in_view = angle_diff < (object_angle + foveal_angle / 2)
     ) %>%
     dplyr::select(time, in_view) %>%
@@ -258,16 +263,23 @@ add_orientation2target <-
   function(ref_movement,
            target_position,
            relative_to_first = FALSE) {
-
     # sometimes we take the mean of the first 10 samples and use the rotation
-    # relative to this value
-    relative_to_first_vec <- rep(relative_to_first, nrow(ref_movement))
+    # relative to this value (encoded in parameter `relative_to_first`)
+    if (relative_to_first) {
+      offset_x <- median(df$rot_x[1:10], na.rm = TRUE)
+      offset_y <- median(df$rot_y[1:10], na.rm = TRUE)
+      offset_z <- median(df$rot_z[1:10], na.rm = TRUE)
+    } else {
+      offset_x <- 0
+      offset_y <- 0
+      offset_z <- 0
+    }
 
     temp_df <- ref_movement %>%
       dplyr::mutate(
-        rot_x = ifelse(relative_to_first_vec, rot_x - stats::median(rot_x[1:10], na.rm = FALSE), rot_x),
-        rot_y = ifelse(relative_to_first_vec, rot_y - stats::median(rot_y[1:10], na.rm = FALSE), rot_y),
-        rot_z = ifelse(relative_to_first_vec, rot_z - stats::median(rot_z[1:10], na.rm = FALSE), rot_z)
+        rot_x = rot_x - offset_x,
+        rot_y = rot_y - offset_y,
+        rot_z = rot_z - offset_z 
       ) %>%
       dplyr::rowwise() %>%
       dplyr::mutate(fwd = list(eulunity2rot(rot_x, rot_y, rot_z) %*% c(0.0, 0.0, 1.0)), # get rotation matrix and multiply by forward vector
@@ -312,57 +324,60 @@ add_orientation2target <-
 #' @export
 #'
 #' @examples
-add_orientation2target2 <-
-  function(ref_movement,
-           target_movement,
-           join_by = "time",
-           relative_to_first = FALSE) {
+add_orientation2target2 <- function(ref_movement, target_movement, join_by = "time", relative_to_first = FALSE) {
+  empty_out <- ref_movement %>%
+    dplyr::mutate(target_diff = NA_real_,
+            target_ratio = NA_real_)
 
-    empty_out <- ref_movement %>%
-      dplyr::mutate(target_diff = NA_real_,
-             target_ratio = NA_real_)
+  if (nrow(target_movement) == 0)
+    return(empty_out)
 
-    if (nrow(target_movement) == 0)
-      return(empty_out)
+  df <-
+    dplyr::left_join(
+      ref_movement,
+      target_movement,
+      by = join_by,
+      suffix = c("_ref", "_target")
+    )
 
-    df <-
-      dplyr::left_join(
-        ref_movement,
-        target_movement,
-        by = join_by,
-        suffix = c("_ref", "_target")
-      )
-
-    # sometimes we take the mean of the first 10 samples and use the rotation
-    # relative to this value
-    relative_to_first_vec <- rep(relative_to_first, nrow(df))
-
-    temp_df <- df %>%
-      dplyr::mutate(
-        rot_x_ref = ifelse(relative_to_first_vec, rot_x_ref - stats::median(rot_x_ref[1:10], na.rm = FALSE), rot_x_ref),
-        rot_y_ref = ifelse(relative_to_first_vec, rot_y_ref - stats::median(rot_y_ref[1:10], na.rm = FALSE), rot_y_ref),
-        rot_z_ref = ifelse(relative_to_first_vec, rot_z_ref - stats::median(rot_z_ref[1:10], na.rm = FALSE), rot_z_ref)
-      ) %>%
-      dplyr::rowwise() %>%
-      dplyr::mutate(fwd = list(eulunity2rot(rot_x_ref, rot_y_ref, rot_z_ref) %*% c(0.0, 0.0, 1.0)), # get rotation matrix and multiply by forward vector
-                    rot_y_ref = calculate_2d_angle_deg(fwd[1, 1], fwd[3, 1])) %>% # process rot_y to avoid discontinuities
-      dplyr::ungroup() %>%
-      dplyr::mutate(
-        target_ang = calculate_2d_angle_deg(pos_x_target, # angle towards target
-                                            pos_z_target,
-                                            pos_x_ref,
-                                            pos_z_ref),
-        target_diff = angle_diff_deg(target_ang, rot_y_ref), # angle relative to reference (e.g. head)
-        target_ratio = pracma::cosd(target_diff)
-      )
-
-    if (nrow(temp_df) == 0)
-      return(empty_out)
-
-    temp_df %>%
-      dplyr::select(all_of(c(join_by, "target_diff", "target_ratio"))) %>%
-      dplyr::right_join(ref_movement, by = join_by)
+  # sometimes we take the mean of the first 10 samples and use the rotation
+  # relative to this value (encoded in parameter `relative_to_first`)
+  if (relative_to_first) {
+    offset_x <- median(df$rot_x_ref[1:10], na.rm = TRUE)
+    offset_y <- median(df$rot_y_ref[1:10], na.rm = TRUE)
+    offset_z <- median(df$rot_z_ref[1:10], na.rm = TRUE)
+  } else {
+    offset_x <- 0
+    offset_y <- 0
+    offset_z <- 0
   }
+
+  temp_df <- df %>%
+    dplyr::mutate(
+      rot_x_ref = rot_x_ref - offset_x,
+      rot_y_ref = rot_y_ref - offset_y,
+      rot_z_ref = rot_z_ref - offset_z 
+    ) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(fwd = list(eulunity2rot(rot_x_ref, rot_y_ref, rot_z_ref) %*% c(0.0, 0.0, 1.0)), # get rotation matrix and multiply by forward vector
+                  rot_y_ref = calculate_2d_angle_deg(fwd[1, 1], fwd[3, 1])) %>% # process rot_y to avoid discontinuities
+    dplyr::ungroup() %>%
+    dplyr::mutate(
+      target_ang = calculate_2d_angle_deg(pos_x_target, # angle towards target
+                                          pos_z_target,
+                                          pos_x_ref,
+                                          pos_z_ref),
+      target_diff = angle_diff_deg(target_ang, rot_y_ref), # angle relative to reference (e.g. head)
+      target_ratio = pracma::cosd(target_diff)
+    )
+
+  if (nrow(temp_df) == 0)
+    return(empty_out)
+
+  temp_df %>%
+    dplyr::select(all_of(c(join_by, "target_diff", "target_ratio"))) %>%
+    dplyr::right_join(ref_movement, by = join_by)
+}
 
 
 #' Add target fixations to eyetracker data
@@ -430,30 +445,47 @@ add_angular_diff <- function(df,
 #'
 #' @param df Movement data frame. Expects columns `rot_x`, `rot_y`, `rot_z`,
 #'           `time`.
+#' @param dimension "3D" (default) or "2D" (only horizontal speed).
 #'
 #' @return Input data frame with column `speed` added.
 #' @export
 #'
 #' @examples
-add_speed <- function(df) {
-  df %>%
+add_speed <- function(df, dimension = "3D") {
+  df <- 
+    df %>%
     dplyr::mutate(
       dplyr::across(
         tidyselect::contains("pos") | tidyselect::any_of("time"),
-        ~ c(NA, diff(.)),
+        ~ {
+          d <- diff(.)
+          c(d, tail(d, 1))
+        },
         .names = "{paste0(.col, '_diff')}"
       )
     ) %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(speed = 1 / time_diff * norm(c(pos_x_diff,
-                                                 pos_y_diff,
-                                                 pos_z_diff), type = "2"))
+    dplyr::rowwise() 
+  
+  if (dimension == "2D") {
+    df <- 
+      df %>%
+      dplyr::mutate(speed = 1 / time_diff * norm(c(pos_x_diff,
+                                                   pos_z_diff), type = "2")) %>%
+      dplyr::mutate(speed = ifelse(abs(speed) != Inf, speed, NA))
+  } else {
+    df <- 
+      df %>%
+      dplyr::mutate(speed = 1 / time_diff * norm(c(pos_x_diff,
+                                                   pos_y_diff,
+                                                   pos_z_diff), type = "2")) %>%
+      dplyr::mutate(speed = ifelse(abs(speed) != Inf, speed, NA))
+  }
 }
 
 #' Add gaze elevation to (head) movement or eye tracker data frame
 #'
 #' Takes a movement or eye tracker data frame, derives rotation matrices from orientation data,
-#' and adds the gaze elevation over the horizontal plane.
+#' and adds the gaze elevation over the horizontal (x-z) plane.
 #'
 #' @param df Movement or eye tracker or combined/resampled data frame. Expects either columns `rot_x`,
 #'  `rot_y`, `rot_z`, or columns `gaze_direction_x`, `gaze_direction_y`, `gaze_direction_z`
@@ -476,4 +508,117 @@ add_gaze_elevation <- function(df,
                   gaze_vector_sph = list(cart2sph(gaze_vector_cart_world)),
                   gaze_elevation = gaze_vector_sph[2]/pi*180)  %>%
     dplyr::select(!c(R, gaze_vector_cart_unity, gaze_vector_cart_world, gaze_vector_sph))
+}
+
+
+#' Add column with distance to stationary target 
+#'
+#' @param df A movement dataframe(must contain standard trajectory
+#'   columns, i.e. `"pos_x"`, `"pos_y"`, `"pos_z"`).
+#' @param ref_position Reference position, stored as a list
+#'   containing `"pos_x"`, `"pos_z"` items.
+#' @returns
+#' @export
+#'
+#' @examples
+add_dist <- function(df, ref_position) {
+  if (is.null(df) || nrow(df) == 0)
+    return(df)
+  
+  if (is.null(ref_position)) {
+    out_df <- df %>%
+      mutate(distance = NA)
+    
+  } else {
+    df %>%
+      rowwise() %>%
+      dplyr::mutate(distance =
+                      calculate_2d_dist(pos_x, pos_z, ref_position$pos_x, ref_position$pos_z))
+  }
+  
+}
+
+
+#' Add column with distance to moving target 
+#'
+#' @param df1 A dataframe of movement (must contain standard trajectory
+#'   columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).
+#' @param df2 A dataframe of movement (must contain standard trajectory
+#'   columns, i.e. `"time"`, `"pos_x"`, `"pos_y"`, `"pos_z"`).
+#' @param samplingrate resampling rate
+#' 
+#' #' NOTE: because sampling times can differ between data frames, data are
+#' resampled at default rate of 10 Hz, and to avoid an impact of tracker
+#' glitches they are median-smoothed over 3 data points (300 ms), using the function
+#' `combine_movement()`
+#'
+#' 
+#' @returns the resampled data frame with column `distance` added
+#' @export
+#'
+#' @examples
+add_dist2 <- function(df1,
+                      df2,
+                      samplingrate = 10) {
+  
+  if (!validate_overlap(df1, df2, .fun_name = "add_dist2")) {
+    df1 %>%
+      resample_movement(sample_rate = samplingrate) %>%
+      dplyr::mutate(distance = NA_real_)
+    
+  } else {
+  df <-
+    combine_movement(
+    df1 = df1,
+    df2 = df2,
+    min_time = 0,
+    max_time = Inf,
+    samplingrate = samplingrate
+  )
+  
+  
+  df %>%
+    # use the "new", i.e. filtered columns
+    dplyr::mutate(distance = calculate_2d_dist(new_pos_x.1, new_pos_z.1, new_pos_x.2, new_pos_z.2)) %>%
+    # remove columns from df2
+    dplyr::select(-tidyselect::ends_with(".2")) %>%
+    # remove all "new", i.e. filtered columns
+    dplyr::select(-tidyselect::starts_with("new_")) %>%
+    # rename resampled columns from df1
+    dplyr::rename_with( ~ substring(.x, 1, stringr::str_length(.x) - 2),
+                        tidyselect::ends_with(".1"))
+  
+  }
+  
+}
+
+
+#' Add movement direction to movement data frame
+#'
+#' Takes a movement data frame and calculates the row-by-row movement direction 
+#' as unit vector
+#' 
+#'
+#' @param df Movement data frame. Expects columns `pos_x`, `pos_y`, `pos_z`.
+#'
+#' @return Input data frame with columns `dir_x`, `dir_y`, `dir_z` added.
+#' @export
+#'
+#' @examples
+add_direction <- function(df) {
+  df %>%
+    dplyr::mutate(
+      dir_x = c(NA, diff(pos_x)),
+      dir_y = c(NA, diff(pos_y)),
+      dir_z = c(NA, diff(pos_z))) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      mag   = sqrt(sum(dplyr::c_across(dir_x:dir_z)^2))) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(
+      dir_x = dir_x/mag,
+      dir_y = dir_y/mag,
+      dir_z = dir_z/mag
+    ) %>%
+    dplyr::select(!mag)
 }

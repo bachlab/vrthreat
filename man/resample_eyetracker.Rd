@@ -23,6 +23,6 @@ Takes an eyetracker data frame, identifies eligible columns, removes value
 outside range (from, to), and resamples to new index, where 0 in the new
 index corresponds to "from".
 For use with 'summarise'.
-Works on all generated columns that start with `fixation`, and on all raw
+Works on all generated columns that start with \code{fixation}, and on all raw
 columns known to contain numerical data
 }
